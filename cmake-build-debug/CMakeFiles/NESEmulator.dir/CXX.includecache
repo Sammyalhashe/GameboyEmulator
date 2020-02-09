@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/sammyalhashemi/CLionProjects/NESEmulator/Bus.h
+cstdint
+-
+CPU.h
+/Users/sammyalhashemi/CLionProjects/NESEmulator/CPU.h
+array
+-
+
+/Users/sammyalhashemi/CLionProjects/NESEmulator/CPU.cpp
+CPU.h
+/Users/sammyalhashemi/CLionProjects/NESEmulator/CPU.h
+Bus.h
+/Users/sammyalhashemi/CLionProjects/NESEmulator/Bus.h
+
+/Users/sammyalhashemi/CLionProjects/NESEmulator/CPU.h
+cstdint
+-
+array
+-
+string
+-
+vector
+-
+
