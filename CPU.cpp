@@ -53,8 +53,7 @@ uint8_t CPU::GetFlag(CPU::Z80_FLAGS f) {
 int CPU::stepCPU() {
     switch (READ(regs.pc)) {
         case 0x00:
-            regs.pc++;
-            return 1;
+            return NOP();
         default:
             printf("Unsupported OPCODE 0x%02x at 0x%04x", READ(regs.pc), regs.pc);
             std::exit(EXIT_FAILURE);
@@ -66,7 +65,7 @@ void CPU::handleCycles(int c) {
     cycles += c;
     if (cycles >= 256) {
         cycles -= 256;
-        // TODO: Flag 
+        // TODO: Flag
     }
 }
 
@@ -78,6 +77,11 @@ void CPU::handleInterrupts() {
     }
 }
 
+/*
+ * TODO: Complete OPCODES
+ */
+
+// No-op
 CPU::OPCODE CPU::NOP() {
     regs.pc++;
     return 1;

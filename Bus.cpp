@@ -12,7 +12,7 @@ Bus::Bus() {
     int cycles;
     while (true) {
         if (cpu.unpaused) {
-            if (!cpu.HALT) {
+            if (!cpu.HALT_FLAG) {
                 // process OPCODE and check flags
                 cycles = cpu.stepCPU();
 
