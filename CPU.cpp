@@ -12,16 +12,19 @@
 // This is a special instruction that tells the cpu to look into a separate OPCODE table.
 #define PREFIX 0xCB
 
+
 // masks
-#define BYTE_FIRST_BIT_MASK 0b10000000u
+#define BYTE_MSB_MASK 0b10000000u
+#define BYTE_LSB_MASK 0b00000001u
 
 
 // special helper functions
-#define HAS_CARRY(n, n1, n2) ((uint16_t)(n < n1) | (uint16_t)((n < n2)))
-#define HAS_HALF_CARRY(nn1, nn2) (((nn1 & 0x0FFFu) + (nn2 + 0x0FFFu)) > 0x0FFF)
-#define HAS_HALF_CARRY_8(n1, n2) (((n1 & 0x0Fu) + (n2 & 0x0Fu)) > 0x0F)
-#define HAS_HALF_CARRY_DECREMENT_8(n) (((n & 0x0Fu) == 0x0Fu))
-#define IS_ZERO_8(n) (n == 0)
+#define HAS_CARRY(n, n1, n2) ((uint16_t)(((n) < (n1))) | (uint16_t)(((n) < (n2))))
+#define HAS_HALF_CARRY(nn1, nn2) (((((nn1) & 0x0FFFu) + ((nn2) + 0x0FFFu)) > 0x0FFF))
+#define HAS_HALF_CARRY_8(n1, n2) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu)) > 0x0F)
+// NOTE: I have to check again whether this is what they mean with the Half carry condition
+#define HAS_HALF_CARRY_DECREMENT_8(n) ((((n) & 0x0Fu) == 0x0Fu))
+#define IS_ZERO_8(n) ((n) == 0)
 
 
 CPU::CPU()
@@ -281,16 +284,26 @@ CPU::OPCODE CPU::INC_BC()
 }
 
 // Increment B
+// Z affected, N unset, H affected
 CPU::OPCODE CPU::INC_B()
 {
+    auto b = regs.bc.B;
     regs.bc.B++;
+    SetFlag(Z, IS_ZERO_8(regs.bc.B));
+    SetFlag(N, false);
+    SetFlag(H, HAS_HALF_CARRY_8(b, 0x01u));
     return 1;
 }
 
 // Decrement B
+// Z affected, N set, H affected
+// NOTE: I have to check again whether this is what they mean with the Half carry condition
 CPU::OPCODE CPU::DEC_B()
 {
     regs.bc.B--;
+    SetFlag(Z, IS_ZERO_8(regs.bc.B));
+    SetFlag(N, true);
+    SetFlag(H, HAS_HALF_CARRY_DECREMENT_8(regs.bc.B));
     return 1;
 }
 
@@ -360,12 +373,13 @@ CPU::OPCODE CPU::INC_C() {
 }
 
 // Decrement register C
+// Z affected, N set, H affected
+// NOTE: I have to check again whether this is what they mean with the Half carry condition
 CPU::OPCODE CPU::DEC_C() {
-    uint8_t n = regs.bc.C;
     regs.bc.C--;
     SetFlag(Z, IS_ZERO_8(regs.bc.C));
     SetFlag(N, true);
-    SetFlag(H, HAS_HALF_CARRY_DECREMENT_8(n));
+    SetFlag(H, HAS_HALF_CARRY_DECREMENT_8(regs.bc.C));
     return 1;
 }
 
@@ -385,6 +399,7 @@ CPU::OPCODE CPU::RRC_A() {
 
 // TODO: Look into what this really should do
 // An opcode summary I was looking at said it should halt the cpu
+// NOTE: I may not need this anyways
 CPU::OPCODE CPU::STOP() {
     HALT_FLAG = true;
     return 1;
@@ -422,50 +437,105 @@ CPU::OPCODE CPU::INC_D() {
 // Decrement the register D
 // Z is affected, N is set, H is affected
 CPU::OPCODE CPU::DEC_D() {
-    uint8_t d = regs.de.D;
     regs.de.D--;
     SetFlag(Z, IS_ZERO_8(regs.de.D));
+    SetFlag(N, true);
+    SetFlag(H, HAS_HALF_CARRY_DECREMENT_8(regs.de.D));
     return 1;
 }
 
+// Load unsigned 8-bit immediate into register D
 CPU::OPCODE CPU::LD_D_n(uint8_t n) {
-    return 0;
+    regs.de.D = n;
+    return 2;
 }
 
+// Rotate register A left through carry
+// C <- [7 <- 0] <- C
+// Z, N, H are unset, C is affected
 CPU::OPCODE CPU::RL_A() {
-    return 0;
+    // C = 0; 10000001 -> C = 1; 00000010
+    auto c = (regs.af.A & BYTE_MSB_MASK) >> 7u;
+    auto oldC = GetFlag(C);
+    regs.af.A = (uint8_t)(regs.af.A << 1u) | oldC;
+    SetFlag(Z, false);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, c);
+    return 1;
 }
 
+// Jump the PR to a signed 8-bit immediate address
 CPU::OPCODE CPU::JR_i(int8_t n) {
-    return 0;
+    regs.pc += n;
+    return 3;
 }
 
+// HL = HL + DE
+// N unset, H, C affected
 CPU::OPCODE CPU::ADD_HL_DE() {
-    return 0;
+    uint16_t hl = regs.hl.HL;
+    uint16_t de = regs.de.DE;
+    regs.hl.HL = regs.hl.HL + regs.de.DE;
+    SetFlag(N, false);
+    SetFlag(H, HAS_HALF_CARRY(hl, de));
+    SetFlag(C, HAS_CARRY(hl, regs.hl.HL, regs.de.DE));
+    return 2;
 }
 
+// Load the data stored at address stored in DE to A
 CPU::OPCODE CPU::LD_A_Addr_DE() {
-    return 0;
+    regs.af.A = READ(regs.de.DE);
+    return 2;
 }
 
+// Decrement registers DE
+// NOTE: no flags are affected according to the OPCODE table I am looking at
 CPU::OPCODE CPU::DEC_DE() {
-    return 0;
+    regs.de.DE--;
+    return 2;
 }
 
+// Increment register E
+// Z affected, N unset, H affected
 CPU::OPCODE CPU::INC_E() {
-    return 0;
+    auto e = regs.de.E;
+    regs.de.E++;
+    SetFlag(Z, IS_ZERO_8(regs.de.E));
+    SetFlag(N, false);
+    SetFlag(H, HAS_HALF_CARRY_8(e, 0x01u));
+    return 1;
 }
 
+// Decrement register E
+// Z affected, N set, H affected
+// NOTE: I have to check again whether this is what they mean with the Half carry condition
 CPU::OPCODE CPU::DEC_E() {
-    return 0;
+    regs.de.E--;
+    SetFlag(Z, IS_ZERO_8(regs.de.E));
+    SetFlag(N, true);
+    SetFlag(H, HAS_HALF_CARRY_DECREMENT_8(regs.de.E));
+    return 1;
 }
 
+// Load an unsigned 8-bit immediate into register E
 CPU::OPCODE CPU::LD_E_n(uint8_t n) {
-    return 0;
+    regs.de.E = n;
+    return 2;
 }
 
+// Rotate register A right through carry
+// C -> [7 -> 0] -> C
+// Z, N, H unset, C affected
 CPU::OPCODE CPU::RR_A() {
-    return 0;
+    auto c = regs.af.A & BYTE_LSB_MASK;
+    auto oldC = GetFlag(C); // either 0x00 or 0x01
+    regs.af.A = (uint8_t)(regs.af.A >> 1u) | (uint8_t)(oldC << 7u);
+    SetFlag(Z, false);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, c);
+    return 1;
 }
 
 CPU::OPCODE CPU::JR_NZ_i(int8_t n) {
