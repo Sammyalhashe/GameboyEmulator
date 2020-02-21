@@ -21,6 +21,8 @@ Bus.h
 /Users/sammyalhashemi/CLionProjects/NESEmulator/Bus.h
 
 /Users/sammyalhashemi/CLionProjects/NESEmulator/CPU.h
+algorithm
+-
 cstdint
 -
 array
@@ -29,4 +31,12 @@ string
 -
 vector
 -
+
+/Users/sammyalhashemi/CLionProjects/NESEmulator/main.cpp
+iostream
+-
+cstdint
+-
+CPU.h
+/Users/sammyalhashemi/CLionProjects/NESEmulator/CPU.h
 

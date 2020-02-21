@@ -1,0 +1,24 @@
+* Gameboy Emulator
+** Originally titled NESEMULATOR as I wanted to emulate an NES first.
+* Resources Used
+   | General | Memory        | CPU | Graphics |
+   |---------+---------------+-----+----------|
+   |         | [[https://izik1.github.io/gbops/index.html][Primary Ops]]   |     |          |
+   |         | [[http://imrannazar.com/GameBoy-Z80-Opcode-Map][Secondary Ops]] |     |          |
+   |         | [[https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html][Third Ops]]     |     |          |
+
+* Task list
+
+**  TODO Finish up Resources Used Table
+   DEADLINE: <2020-02-16 Sun>
+
+*** TODO Unprefixed [1/2] [50%]
+    DEADLINE: <2020-03-07 Sat>
+    - [X] Header definitions
+    - [ ] Implementations
+ 
+*** TODO Prefixed [0/2] [0%]
+    DEADLINE: <2020-03-28 Sat>
+    - [ ] Header definitions
+    - [ ] Implementations
+
