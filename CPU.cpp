@@ -4,6 +4,7 @@
 
 #include "CPU.h"
 #include "Bus.h"
+#include <cstdint>
 
 // This register keeps track if an interrupt condition was met or not
 #define INTERRUPT_FLAG_REG 0xFF0F
@@ -19,22 +20,18 @@
 
 
 // special helper functions
+// NOTE: params are (result, firstVal, secondVal)
 #define HAS_CARRY(n, n1, n2) ((uint16_t)(((n) < (n1))) | (uint16_t)(((n) < (n2))))
+// NOTE: params are (firstVal, secondVal)
 #define HAS_HALF_CARRY(nn1, nn2) (((((nn1) & 0x0FFFu) + ((nn2) + 0x0FFFu)) > 0x0FFF))
+// NOTE: params are (firstVal, secondVal)
 #define HAS_HALF_CARRY_8(n1, n2) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu)) > 0x0F)
 // NOTE: I have to check again whether this is what they mean with the Half carry condition
 #define HAS_HALF_CARRY_DECREMENT_8(n) ((((n) & 0x0Fu) == 0x0Fu))
 #define IS_ZERO_8(n) ((n) == 0)
 
 
-CPU::CPU()
-{
-    using a = CPU;
-    lookup =
-            {
-                    {}
-            };
-}
+CPU::CPU() {}
 
 CPU::~CPU()=default;
 
@@ -84,6 +81,23 @@ void CPU::SetFlag(CPU::Z80_FLAGS f, bool v) {
 
 uint8_t CPU::GetFlag(CPU::Z80_FLAGS f) {
     return (regs.f & f) > 0 ? 1 : 0;
+}
+
+// Z affected, N unset, H affected
+void CPU::INCREMENT_8_BIT_REG(uint8_t& reg) {
+    auto r = reg;
+    reg++;
+    SetFlag(Z, IS_ZERO_8(reg));
+    SetFlag(N, false);
+    SetFlag(H, HAS_HALF_CARRY_8(r, 0x01u));
+}
+
+// Z affected, N set, H affected
+void CPU::DECREMENT_8_BIT_REG(uint8_t& reg) {
+    reg--;
+    SetFlag(Z, IS_ZERO_8(reg));
+    SetFlag(N, true);
+    SetFlag(H, HAS_HALF_CARRY_DECREMENT_8(reg));
 }
 
 int CPU::stepCPU() {
@@ -465,7 +479,7 @@ CPU::OPCODE CPU::RL_A() {
     return 1;
 }
 
-// Jump the PR to a signed 8-bit immediate address
+// Jump the PR by a signed 8-bit immediate address
 CPU::OPCODE CPU::JR_i(int8_t n) {
     regs.pc += n;
     return 3;
@@ -538,68 +552,145 @@ CPU::OPCODE CPU::RR_A() {
     return 1;
 }
 
+// Relative jump by adding n to to the current address (PC) if the current condition (NZ=Non-Zero) is met
+// NOTE: this has different timings based on whether there are branches or not
+// TODO: update based on if there is branching
 CPU::OPCODE CPU::JR_NZ_i(int8_t n) {
-    return 0;
+    if (!GetFlag(Z)) {
+      regs.pc += n;
+    }
+    return 2;
 }
 
+// Load 16-bit unsigned immediate into register HL
 CPU::OPCODE CPU::LD_HL_nn(uint16_t nn) {
-    return 0;
+    regs.hl.HL = nn;
+    return 3;
 }
 
+// Load contents of register A into the address that register HL points to
+// Also post-increment HL
 CPU::OPCODE CPU::LDI_Addr_HL_A() {
-    return 0;
+    WRITE(regs.hl.HL++, regs.af.A);
+    return 2;
 }
 
+// Increment register HL
 CPU::OPCODE CPU::INC_HL() {
-    return 0;
+    regs.hl.HL++;
+    return 2;
 }
 
+// Increment register H
+// z affected, N unset, H affected
 CPU::OPCODE CPU::INC_H() {
-    return 0;
+  auto h = regs.hl.H;
+  regs.hl.H++;
+  SetFlag(Z, IS_ZERO_8(regs.hl.H));
+  SetFlag(N, false);
+  SetFlag(H, HAS_HALF_CARRY_8(h, 0x01u));
+  return 1;
 }
 
+// Decrement register H
+// Z affected, N set, H affected
 CPU::OPCODE CPU::DEC_H() {
-    return 0;
+    DECREMENT_8_BIT_REG(regs.hl.H);
+    return 1;
 }
 
+// Load unsigned 8-bit immediate into register H
 CPU::OPCODE CPU::LD_H_n(uint8_t n) {
-    return 0;
+    regs.hl.H = n;
+    return 2;
 }
 
+// Decimal adjust register A to get correct BCD representation after arithmetic
+// instruction. Z affected, H unset, C set or reset depending on the instruction
+// (if the previous instruction was addition).
+// NOTE: see https://forums.nesdev.com/viewtopic.php?t=15944
+// NOTE: found this also (https://github.com/blazer82/gb.teensy/blob/master/lib/CPU/CPU.cpp#L2647)
 CPU::OPCODE CPU::DAA() {
-    return 0;
+    uint8_t nFlag = GetFlag(N); // either 0x00 or 0x01
+    uint8_t cFlag = GetFlag(C); // same
+    uint8_t hFlag = GetFlag(H); // same
+    if (!nFlag) {
+      if (cFlag || regs.af.A > 0x99) { regs.af.A += 0x60; SetFlag(C, true); }
+      if (hFlag || (regs.af.A & 0x0f) > 0x09) { regs.af.A += 0x06; }
+    } else {
+      if (cFlag) { regs.af.A += 0x60; }
+      if (hFlag) { regs.af.A += 0x06; }
+    }
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    SetFlag(H, false);
+    return 1;
 }
 
+// Relative jump by adding n to the current address (PC) if the Z (Z flag is
+// set; is zero) NOTE: this has different timings based on whether there are
+// branches or not
+// TODO: update based on if there is branching
 CPU::OPCODE CPU::JR_Z_i(int8_t n) {
-    return 0;
+    if (GetFlag(Z)) {
+      regs.pc += n;
+    }
+    return 2;
 }
 
+// Add HL to itself and store the result in HL
+// N unset, H affected (if overflow from bit 11), C affected (if overflow from bit 15)
 CPU::OPCODE CPU::ADD_HL_HL() {
-    return 0;
+    uint16_t hl = regs.hl.HL; // store initial reg value
+    regs.hl.HL = regs.hl.HL + regs.hl.HL;
+    SetFlag(N, false);
+    SetFlag(H, HAS_HALF_CARRY(hl, hl));
+    SetFlag(C, HAS_CARRY(regs.hl.HL, hl, hl));
+    return 2;
 }
 
+// Load the value stored at address pointed to by register HL into register A and postincrement A
 CPU::OPCODE CPU::LDI_A_Addr_HL() {
-    return 0;
+    // read the value at address (HL) -> postincrement HL
+    regs.af.A = READ(regs.hl.HL++);
+    return 2;
 }
 
+// Decrement the register HL
+// No flags affected
 CPU::OPCODE CPU::DEC_HL() {
-    return 0;
+    regs.hl.HL--;
+    return 2;
 }
 
+// Increment the register L
+// Z affected, N unset, H affected
 CPU::OPCODE CPU::INC_L() {
-    return 0;
+    // helper function takes care of this
+    INCREMENT_8_BIT_REG(regs.hl.L);
+    return 1;
 }
 
+// Decrement the register L
+// Z affected, N set, H affected
 CPU::OPCODE CPU::DEC_L() {
-    return 0;
+    // helper function takes care of this
+    DECREMENT_8_BIT_REG(regs.hl.L);
+    return 1;
 }
 
+// Load unsigned 8-bit immediate into register L
 CPU::OPCODE CPU::LD_L_n(uint8_t n) {
-    return 0;
+    regs.hl.L = n;
+    return 2;
 }
 
+// Compliment Accumulator (register A)
+// N set, H set
 CPU::OPCODE CPU::CPL() {
-    return 0;
+    regs.af.A = ~regs.af.A;
+    SetFlag(N, true);
+    SetFlag(H, true);
+    return 1;
 }
 
 CPU::OPCODE CPU::JR_NC_i(int8_t n) {

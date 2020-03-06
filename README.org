@@ -1,17 +1,18 @@
 * Gameboy Emulator
 ** Originally titled NESEMULATOR as I wanted to emulate an NES first.
 * Resources Used
-   | General                 | Memory/OPCODES | CPU             | Graphics |
-   |-------------------------+----------------+-----------------+----------|
-   | [[http://emudev.de/gameboy-emulator/overview/][Nice Blog]]               | [[https://izik1.github.io/gbops/index.html][Primary Ops]]    | [[https://rednex.github.io/rgbds/gbz80.7.html#RLC_r8][OPCODES Summary]] |          |
-   | [[https://www.youtube.com/watch?v=HyzD8pNlpwI][Good Talk]]               | [[http://imrannazar.com/GameBoy-Z80-Opcode-Map][Secondary Ops]]  | [[http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf][Gameboy CPU]]     |          |
-   | [[https://discordapp.com/channels/465585922579103744/641335509393866753][Emulation Discord]]       | [[https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html][Third Ops]]      |                 |          |
-   | [[https://www.zophar.net/fileuploads/2/10597teazh/gbrom.txt][GameBoy header ROM info]] | [[https://stackoverflow.com/questions/8868396/game-boy-what-constitutes-a-half-carry][On Half carrys]] |                 |          |
+   | General                 | Memory/OPCODES            | CPU             | Graphics |
+   |-------------------------+---------------------------+-----------------+----------|
+   | [[http://emudev.de/gameboy-emulator/overview/][Nice Blog]]               | [[https://izik1.github.io/gbops/index.html][Primary Ops]]               | [[https://rednex.github.io/rgbds/gbz80.7.html#RLC_r8][OPCODES Summary]] |          |
+   | [[https://www.youtube.com/watch?v=HyzD8pNlpwI][Good Talk]]               | [[http://imrannazar.com/GameBoy-Z80-Opcode-Map][Secondary Ops]]             | [[http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf][Gameboy CPU]]     |          |
+   | [[https://discordapp.com/channels/465585922579103744/641335509393866753][Emulation Discord]]       | [[https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html][Third Ops]]                 |                 |          |
+   | [[https://www.zophar.net/fileuploads/2/10597teazh/gbrom.txt][GameBoy header ROM info]] | [[https://stackoverflow.com/questions/8868396/game-boy-what-constitutes-a-half-carry][On Half carrys]]            |                 |          |
+   |                         | [[https://forums.nesdev.com/viewtopic.php?t=15944][Blog entry for DAA OPCODE]] |                 |          |
 
 * Task list
 
-**  TODO Finish up Resources Used Table
-   DEADLINE: <2020-02-16 Sun>
+** DONE Finish up Resources Used Table
+   CLOSED: [2020-02-23 Sun 00:28] DEADLINE: <2020-02-16 Sun>
 
 *** TODO Unprefixed [1/2] [50%]
     DEADLINE: <2020-03-07 Sat>

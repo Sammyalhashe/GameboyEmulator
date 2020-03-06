@@ -2,6 +2,7 @@
 // Created by Sammy Al Hashemi on 2020-02-02.
 //
 
+#include <_types/_uint8_t.h>
 #include <algorithm>
 #include <cstdint>
 #include <array>
@@ -103,7 +104,6 @@ public:
         // u_int32_t r13_abt, r14_abt;                                                     // Abort mode
         // u_int32_t r13_irq, r14_irq;                                                     // IRQ mode
         // u_int32_t r13_und, r14_und;                                                     // Undefined mode
-        
         uint64_t clkcount; // clk
     } REGS;
     typedef int OPCODE; // type alias for OPCODES (for mapping)
@@ -173,6 +173,12 @@ private: //OPCODES
     OPCODE LD();
     OPCODE ADD();
     OPCODE ADC();
+    // Increment register (8-bit/1-byte)
+    // Z affected, N unset, H affected
+    void INCREMENT_8_BIT_REG(uint8_t&);
+    // Decrement register (8-bit/1-byte)
+    // Z affected, N set, H affected
+    void DECREMENT_8_BIT_REG(uint8_t&);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();
