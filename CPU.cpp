@@ -85,7 +85,9 @@ uint8_t CPU::GetFlag(CPU::Z80_FLAGS f) {
 
 // Z affected, N unset, H affected
 void CPU::INCREMENT_8_BIT_REG(uint8_t& reg) {
+    // grab the original value
     auto r = reg;
+    // Increment the value
     reg++;
     SetFlag(Z, IS_ZERO_8(reg));
     SetFlag(N, false);
@@ -99,6 +101,45 @@ void CPU::DECREMENT_8_BIT_REG(uint8_t& reg) {
     SetFlag(N, true);
     SetFlag(H, HAS_HALF_CARRY_DECREMENT_8(reg));
 }
+
+/**
+ * Adds HL, BC and puts the result in HL.
+ * N is unset, H, C are affected by the result
+ * In this operation, H is set if there is a carry-over from 11-12.
+ * NOTE: watch out for these half-carry. I was reading online that they can
+ * vary per operation.
+ */
+int CPU::ADD_HL_REG(uint16_t REG) {
+    auto nn1 = regs.hl.HL;
+    auto nn2 = REG;
+    regs.hl.HL = nn1 + nn2;
+    SetFlag(N, false); // unset the negative-flag
+    // Carry and Half-carry flags are affected
+    SetFlag(C, HAS_CARRY(regs.hl.HL, nn1, nn2));
+    SetFlag(H, HAS_HALF_CARRY(nn1, nn2));
+    return 2;
+}
+
+// Load value into register and post-decrement register address
+int CPU::LDD_Addr_REG_reg(uint16_t& REG, uint8_t& reg, bool inc) {
+    if (inc) {
+      WRITE(REG++, reg);
+    } else {
+      WRITE(REG--, reg);
+    }
+    return 2;
+}
+
+// Load value pointed to by register REG into register register
+int CPU::LDD_reg_Addr_REG(uint8_t& reg, uint16_t& REG, bool inc) {
+  if (inc) {
+    reg = READ(REG++);
+  } else {
+    reg = READ(REG--);
+  }
+  return 2;
+}
+
 
 int CPU::stepCPU() {
     switch (READ(regs.pc++)) {
@@ -693,68 +734,116 @@ CPU::OPCODE CPU::CPL() {
     return 1;
 }
 
+// Relative jump by signed 8-bit immediate to the current adddress
+// if not carry
+// NOTE: 2 cycles but 3 if branching is enabled
 CPU::OPCODE CPU::JR_NC_i(int8_t n) {
-    return 0;
+    if (!GetFlag(C)) {
+      regs.pc += n;
+    }
+    return 2;
 }
 
+// Load unsigned 16-bit immediate into SP
 CPU::OPCODE CPU::LD_SP_nn(uint16_t nn) {
-    return 0;
+    regs.sp = nn;
+    return 3;
 }
 
+// Load the 8-bit value stored in A to memory pointed to by register HL
 CPU::OPCODE CPU::LDD_Addr_HL_A() {
-    return 0;
+    return LDD_Addr_REG_reg(regs.hl.HL, regs.af.A, false);
 }
 
+// Increment the Stack Pointer
 CPU::OPCODE CPU::INC_SP() {
-    return 0;
+    regs.sp++;
+    return 2;
 }
 
+// Increment the value pointed to by register HL
+// Z affected, C unset, H affected
 CPU::OPCODE CPU::INC_Addr_HL() {
-    return 0;
+    // read its value
+    uint8_t val = READ(regs.hl.HL);
+    // take advantage of this register increment function -> takes care of flags for you
+    INCREMENT_8_BIT_REG(val);
+    return 3;
 }
 
+// Decrement the value pointed to by the register HL
+// Z affected, N set, H affected
 CPU::OPCODE CPU::DEC_Addr_HL() {
-    return 0;
+    uint8_t val = READ(regs.hl.HL);
+    DECREMENT_8_BIT_REG(val);
+    return 3;
 }
 
+// Load 8-bit immediate into the address register HL points to
 CPU::OPCODE CPU::LD_Addr_HL_n(uint8_t n) {
-    return 0;
+    WRITE(regs.hl.HL, n);
+    return 3;
 }
 
+// Set Carry Flag
+// N unset, H unset, C set
 CPU::OPCODE CPU::SCF() {
-    return 0;
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, true);
+    return 1;
 }
 
+// Relative jump by signed 8-bit immediate if last operation resulted in a Carry set
+// NOTE: if no branching: 2 cycles, else 3
 CPU::OPCODE CPU::JR_C_i(int8_t n) {
-    return 0;
+    if (GetFlag(C)) {
+      regs.pc += n;
+    }
+    return 2;
 }
 
+// Add the value stored in SP to HL
 CPU::OPCODE CPU::ADD_HL_SP() {
-    return 0;
+    return ADD_HL_REG(regs.sp);
 }
 
+// Load value pointed to by register HL into register A and post decrement HL
 CPU::OPCODE CPU::LDD_A_Addr_HL() {
-    return 0;
+    return LDD_reg_Addr_REG(regs.af.A, regs.hl.HL, false);
 }
 
+// Decrement the stack pointer
 CPU::OPCODE CPU::DEC_SP() {
-    return 0;
+    regs.sp--;
+    return 2;
 }
 
+// Increment register A
+// Z affected, N unset, H affected
 CPU::OPCODE CPU::INC_A() {
-    return 0;
+    INCREMENT_8_BIT_REG(regs.af.A);
+    return 1;
 }
 
+// Decrement register A
+// Z affected, N set, H affected
 CPU::OPCODE CPU::DEC_A() {
-    return 0;
+    DECREMENT_8_BIT_REG(regs.af.A);
+    return 1;
 }
 
+// load unsigned 8-bit immediate into register A
 CPU::OPCODE CPU::LD_A_n(uint8_t n) {
-    return 0;
+    regs.af.A = n;
+    return 2;
 }
 
+// Complement Carry flag
+// N unset, H unset, C complimented
 CPU::OPCODE CPU::CCF() {
-    return 0;
+    SetFlag(C, !GetFlag(C));
+    return 1;
 }
 
 CPU::OPCODE CPU::LD_B_B() {

@@ -179,6 +179,22 @@ private: //OPCODES
     // Decrement register (8-bit/1-byte)
     // Z affected, N set, H affected
     void DECREMENT_8_BIT_REG(uint8_t&);
+    // Load 8-bit value stored in register reg into memory REG points to, and post decrement it's address
+    // returns the number of cycles it takes (2)
+    // No flags affected
+    int LDD_Addr_REG_reg(uint16_t&, uint8_t&, bool);
+    // Load value pointed to by register REG into register reg
+    // return the number of cycles it takes (2)
+    // No flags affected
+    int LDD_reg_Addr_REG(uint8_t&, uint16_t&, bool);
+    /**
+     * Adds HL, BC and puts the result in HL.
+     * N is unset, H, C are affected by the result
+     * In this operation, H is set if there is a carry-over from 11-12.
+     * NOTE: watch out for these half-carry. I was reading online that they can
+     * vary per operation.
+     */
+    int ADD_HL_REG(uint16_t REG);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();
