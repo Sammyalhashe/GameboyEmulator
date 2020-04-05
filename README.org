@@ -18,9 +18,8 @@
     DEADLINE: <2020-03-07 Sat>
     - [X] Header definitions
     - [ ] Implementations
- 
+
 *** TODO Prefixed [1/2] [50%]
     DEADLINE: <2020-03-28 Sat>
     - [X] Header definitions
     - [ ] Implementations
-

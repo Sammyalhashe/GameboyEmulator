@@ -846,68 +846,100 @@ CPU::OPCODE CPU::CCF() {
     return 1;
 }
 
+// load B into B
 CPU::OPCODE CPU::LD_B_B() {
-    return 0;
+    regs.bc.B = regs.bc.B;
+    return 1;
 }
 
+// load C into B
 CPU::OPCODE CPU::LB_B_C() {
-    return 0;
+    regs.bc.B = regs.bc.C;
+    return 1;
 }
 
+// load D into B
 CPU::OPCODE CPU::LD_B_D() {
-    return 0;
+    regs.bc.B = regs.de.D;
+    return 1;
 }
 
+// load E into B
 CPU::OPCODE CPU::LD_B_E() {
-    return 0;
+    regs.bc.B = regs.de.E;
+    return 1;
 }
 
+// load H into B
 CPU::OPCODE CPU::LD_B_H() {
-    return 0;
+    regs.bc.B = regs.hl.H;
+    return 1;
 }
 
+// load L into B
 CPU::OPCODE CPU::LD_B_L() {
-    return 0;
+    regs.bc.B = regs.hl.L;
+    return 1;
 }
 
+// load the value pointed to by reg HL into B
 CPU::OPCODE CPU::LD_B_Addr_HL() {
-    return 0;
+    regs.bc.B = READ(regs.hl.HL);
+    return 2;
 }
 
+// load A into B
 CPU::OPCODE CPU::LD_B_A() {
-    return 0;
+    regs.bc.B = regs.af.A;
+    return 1;
 }
 
+// load B into C
 CPU::OPCODE CPU::LD_C_B() {
-    return 0;
+    regs.bc.C = regs.bc.B;
+    return 1;
 }
 
+// load C into C
 CPU::OPCODE CPU::LD_C_C() {
-    return 0;
+    regs.bc.C = regs.bc.C;
+    return 1;
 }
 
+// load D into C
 CPU::OPCODE CPU::LD_C_D() {
-    return 0;
+    regs.bc.C = regs.de.D;
+    return 1;
 }
 
+// load E into C
 CPU::OPCODE CPU::LD_C_E() {
-    return 0;
+    regs.bc.C = regs.de.E;
+    return 1;
 }
 
+// load H into C
 CPU::OPCODE CPU::LD_C_H() {
-    return 0;
+    regs.bc.C = regs.hl.H;
+    return 1;
 }
 
+// load L into C
 CPU::OPCODE CPU::LD_C_L() {
-    return 0;
+    regs.bc.C = regs.hl.L;
+    return 1;
 }
 
+// load the value pointed by the address HL into C
 CPU::OPCODE CPU::LD_C_Addr_HL() {
-    return 0;
+    regs.bc.C = READ(regs.hl.HL);
+    return 2;
 }
 
+// load A into C
 CPU::OPCODE CPU::LD_C_A() {
-    return 0;
+    regs.bc.C = regs.af.A;
+    return 1;
 }
 
 CPU::OPCODE CPU::LD_D_B() {
