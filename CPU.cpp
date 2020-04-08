@@ -942,196 +942,293 @@ CPU::OPCODE CPU::LD_C_A() {
     return 1;
 }
 
+// load B into D
 CPU::OPCODE CPU::LD_D_B() {
-    return 0;
+    regs.de.D = regs.bc.B;
+    return 1;
 }
 
+// load C into D
 CPU::OPCODE CPU::LD_D_C() {
-    return 0;
+    regs.de.D = regs.bc.C;
+    return 1;
 }
 
+// load D into D
 CPU::OPCODE CPU::LD_D_D() {
-    return 0;
+    regs.de.D = regs.de.D;
+    return 1;
 }
 
+// load E into D
 CPU::OPCODE CPU::LD_D_E() {
-    return 0;
+    regs.de.D = regs.de.E;
+    return 1;
 }
 
+// load H into D
 CPU::OPCODE CPU::LD_D_H() {
-    return 0;
+    regs.de.D = regs.hl.H;
+    return 1;
 }
 
+// load L into D
 CPU::OPCODE CPU::LD_D_L() {
-    return 0;
+    regs.de.D = regs.hl.L;
+    return 1;
 }
 
+// load the value pointed to by HL into D
 CPU::OPCODE CPU::LD_D_Addr_HL() {
-    return 0;
+    regs.de.D = READ(regs.hl.HL);
+    return 2;
 }
 
+// load A into D
 CPU::OPCODE CPU::LD_D_A() {
-    return 0;
+    regs.de.D = regs.af.A;
+    return 1;
 }
 
+// load B into E
 CPU::OPCODE CPU::LD_E_B() {
-    return 0;
+    regs.de.E = regs.bc.B;
+    return 1;
 }
 
+// load C into E
 CPU::OPCODE CPU::LD_E_C() {
-    return 0;
+    regs.de.E = regs.bc.C;
+    return 1;
 }
 
+// load D into E
 CPU::OPCODE CPU::LD_E_D() {
-    return 0;
+    regs.de.E = regs.de.D;
+    return 1;
 }
 
+// load E into E
 CPU::OPCODE CPU::LD_E_E() {
-    return 0;
+    regs.de.E = regs.de.E;
+    return 1;
 }
 
+// load H into E
 CPU::OPCODE CPU::LD_E_H() {
-    return 0;
+    regs.de.E = regs.hl.H;
+    return 1;
 }
 
+// load L into E
 CPU::OPCODE CPU::LD_E_L() {
-    return 0;
+    regs.de.E = regs.hl.L;
+    return 1;
 }
 
+// load the value pointed to by HL into E
 CPU::OPCODE CPU::LD_E_Addr_HL() {
-    return 0;
+    regs.de.E = READ(regs.hl.HL);
+    return 2;
 }
 
+// load A into E
 CPU::OPCODE CPU::LD_E_A() {
-    return 0;
+    regs.de.E = regs.af.A;
+    return 1;
 }
 
+// load B into H
 CPU::OPCODE CPU::LD_H_B() {
-    return 0;
+    regs.hl.H = regs.bc.B;
+    return 1;
 }
 
+// load B into H
 CPU::OPCODE CPU::LD_H_C() {
-    return 0;
+    regs.hl.H = regs.bc.C;
+    return 1;
 }
 
+// load D into H
 CPU::OPCODE CPU::LD_H_D() {
-    return 0;
+    regs.hl.H = regs.de.D;
+    return 1;
 }
 
+// load E into H
 CPU::OPCODE CPU::LD_H_E() {
-    return 0;
+    regs.hl.H = regs.de.E;
+    return 1;
 }
 
+// load H into H
 CPU::OPCODE CPU::LD_H_H() {
-    return 0;
+    regs.hl.H = regs.hl.H;
+    return 1;
 }
 
+// load L into H
 CPU::OPCODE CPU::LD_H_L() {
-    return 0;
+    regs.hl.H = regs.hl.L;
+    return 1;
 }
 
+// load the value pointed to by HL into H
 CPU::OPCODE CPU::LD_H_Addr_HL() {
-    return 0;
+    regs.hl.H = READ(regs.hl.HL);
+    return 2;
 }
 
+// load A into H
 CPU::OPCODE CPU::LD_H_A() {
-    return 0;
+    regs.hl.H = regs.af.A;
+    return 1;
 }
 
+// load B into L
 CPU::OPCODE CPU::LD_L_B() {
-    return 0;
+    regs.hl.L = regs.bc.B;
+    return 1;
 }
 
+// load C into L
 CPU::OPCODE CPU::LD_L_C() {
-    return 0;
+    regs.hl.L = regs.bc.C;
+    return 1;
 }
 
+// load D into L
 CPU::OPCODE CPU::LD_L_D() {
-    return 0;
+    regs.hl.L = regs.de.D;
+    return 1;
 }
 
+// load E into L
 CPU::OPCODE CPU::LD_L_E() {
-    return 0;
+    regs.hl.L = regs.de.E;
+    return 1;
 }
 
+// load H into L
 CPU::OPCODE CPU::LD_L_H() {
-    return 0;
+    regs.hl.L = regs.hl.H;
+    return 1;
 }
 
+// load L into L
 CPU::OPCODE CPU::LD_L_L() {
-    return 0;
+    regs.hl.L = regs.hl.L;
+    return 1;
 }
 
+// load the value pointed to by HL into L
 CPU::OPCODE CPU::LD_L_Addr_HL() {
-    return 0;
+    regs.hl.L = READ(regs.hl.HL);
+    return 2;
 }
 
+// load A into L
 CPU::OPCODE CPU::LD_L_A() {
-    return 0;
+    regs.hl.L = regs.af.A;
+    return 1;
 }
 
+// load B into the location HL points to
 CPU::OPCODE CPU::LD_Addr_HL_B() {
-    return 0;
+    WRITE(regs.hl.HL, regs.bc.B);
+    return 2;
 }
 
+// load C into the location HL points to
 CPU::OPCODE CPU::LD_Addr_HL_C() {
-    return 0;
+    WRITE(regs.hl.HL, regs.bc.C);
+    return 2;
 }
 
+// load D into the location HL points to
 CPU::OPCODE CPU::LD_Addr_HL_D() {
-    return 0;
+    WRITE(regs.hl.HL, regs.de.D);
+    return 2;
 }
 
+// load E into the location HL points to
 CPU::OPCODE CPU::LD_Addr_HL_E() {
-    return 0;
+    WRITE(regs.hl.HL, regs.de.E);
+    return 2;
 }
 
+// load H into the location HL points to
 CPU::OPCODE CPU::LD_Addr_HL_H() {
-    return 0;
+    WRITE(regs.hl.HL, regs.hl.H);
+    return 2;
 }
 
+// load L into the location HL points to
 CPU::OPCODE CPU::LD_Addr_HL_L() {
-    return 0;
+    WRITE(regs.hl.HL, regs.hl.L);
+    return 2;
 }
 
+// toggle the HALT_FLAG to on
+// TODO: Check if this is the correct operation
 CPU::OPCODE CPU::HALT() {
-    return 0;
+    HALT_FLAG = true;
+    return 1;
 }
 
+// load A into the location HL points to
 CPU::OPCODE CPU::LD_Addr_HL_A() {
-    return 0;
+    WRITE(regs.hl.HL, regs.af.A);
+    return 2;
 }
 
+// load B into A
 CPU::OPCODE CPU::LD_A_B() {
-    return 0;
+    regs.af.A = regs.bc.B;
+    return 1;
 }
 
+// load C into A
 CPU::OPCODE CPU::LD_A_C() {
-    return 0;
+    regs.af.A = regs.bc.C;
+    return 1;
 }
 
+// load D into A
 CPU::OPCODE CPU::LD_A_D() {
-    return 0;
+    regs.af.A = regs.de.D;
+    return 1;
 }
 
+// load E into A
 CPU::OPCODE CPU::LD_A_E() {
-    return 0;
+    regs.af.A = regs.de.E;
+    return 1;
 }
 
+// load H into A
 CPU::OPCODE CPU::LD_A_H() {
-    return 0;
+    regs.af.A = regs.hl.H;
+    return 1;
 }
 
+// load L into A
 CPU::OPCODE CPU::LD_A_L() {
-    return 0;
+    regs.af.A = regs.hl.L;
+    return 1;
 }
 
+// load the value pointed to by HL into A
 CPU::OPCODE CPU::LD_A_Addr_HL() {
-    return 0;
+    regs.af.A = READ(regs.hl.HL);
+    return 2;
 }
 
+// load A into A
 CPU::OPCODE CPU::LD_A_A() {
-    return 0;
+    regs.af.A = regs.af.A;
+    return 1;
 }
 
 CPU::OPCODE CPU::ADD_A_B() {
