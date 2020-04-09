@@ -195,6 +195,7 @@ private: //OPCODES
      * vary per operation.
      */
     int ADD_HL_REG(uint16_t REG);
+    int ADD_A_REG(uint8_t REG);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();

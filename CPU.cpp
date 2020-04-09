@@ -19,9 +19,10 @@
 #define BYTE_LSB_MASK 0b00000001u
 
 
-// special helper functions
+// special helper macros
 // NOTE: params are (result, firstVal, secondVal)
-#define HAS_CARRY(n, n1, n2) ((uint16_t)(((n) < (n1))) | (uint16_t)(((n) < (n2))))
+#define HAS_CARRY(nn, nn1, nn2) ((uint16_t)(((nn) < (nn1))) | (uint16_t)(((nn) < (nn2))))
+#define HAS_CARRY_8(n, n1, n2) ((uint8_t)(((n) < (n1))) | (uint8_t)(((n) < (n2))))
 // NOTE: params are (firstVal, secondVal)
 #define HAS_HALF_CARRY(nn1, nn2) (((((nn1) & 0x0FFFu) + ((nn2) + 0x0FFFu)) > 0x0FFF))
 // NOTE: params are (firstVal, secondVal)
@@ -118,6 +119,21 @@ int CPU::ADD_HL_REG(uint16_t REG) {
     SetFlag(C, HAS_CARRY(regs.hl.HL, nn1, nn2));
     SetFlag(H, HAS_HALF_CARRY(nn1, nn2));
     return 2;
+}
+
+int CPU::ADD_A_REG(uint8_t REG) {
+    auto n1 = regs.af.A;
+    auto n2 = REG;
+    regs.af.A = n1 + n2;
+    // set Z flag if the result is zero
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    // unset N flag
+    SetFlag(N, false);
+    // set H if overflow from bit 3
+    SetFlag(H, HAS_HALF_CARRY_8(n1, n2));
+    // set C if overflow from bit 7
+    SetFlag(C, HAS_CARRY_8(regs.af.A, n1, n2));
+    return 1;
 }
 
 // Load value into register and post-decrement register address
@@ -1231,28 +1247,42 @@ CPU::OPCODE CPU::LD_A_A() {
     return 1;
 }
 
+// add the value in B to A
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADD_A_B() {
-    return 0;
+    return ADD_A_REG(regs.bc.B);
 }
 
+
+//  add the value in C to A
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADD_A_C() {
-    return 0;
+    return ADD_A_REG(regs.bc.C);
 }
 
+
+// add the value in D to A
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADD_A_D() {
-    return 0;
+    return ADD_A_REG(regs.de.D);
 }
 
+// add the value in E to A
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADD_A_E() {
-    return 0;
+    return ADD_A_REG(regs.de.E);
 }
 
+// add the value in H to A
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADD_A_H() {
-    return 0;
+    return ADD_A_REG(regs.hl.H);
 }
 
+// add the value in L to A
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADD_A_L() {
-    return 0;
+    return ADD_A_REG(regs.hl.L);
 }
 
 CPU::OPCODE CPU::ADD_A_Addr_HL() {
