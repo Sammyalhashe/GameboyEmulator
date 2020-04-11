@@ -4,6 +4,7 @@
 
 #include "CPU.h"
 #include "Bus.h"
+#include <_types/_uint16_t.h>
 #include <cstdint>
 
 // This register keeps track if an interrupt condition was met or not
@@ -22,11 +23,18 @@
 // special helper macros
 // NOTE: params are (result, firstVal, secondVal)
 #define HAS_CARRY(nn, nn1, nn2) ((uint16_t)(((nn) < (nn1))) | (uint16_t)(((nn) < (nn2))))
+// NOTE: params are (result, firstVal, secondVal, carry flag)
+#define HAS_CARRY_c(nn, nn1, nn2, c) ((uint16_t)(((nn - c) < (nn1))) | (uint16_t)(((nn - c) < (nn2))))
+// NOTE: params are (result, firstVal, secondVal)
 #define HAS_CARRY_8(n, n1, n2) ((uint8_t)(((n) < (n1))) | (uint8_t)(((n) < (n2))))
+// NOTE: params are (result, firstVal, secondVal, carry flag)
+#define HAS_CARRY_8_c(n, n1, n2, c) ((uint8_t)(((n - c) < (n1))) | (uint8_t)(((n - c) < (n2))))
 // NOTE: params are (firstVal, secondVal)
 #define HAS_HALF_CARRY(nn1, nn2) (((((nn1) & 0x0FFFu) + ((nn2) + 0x0FFFu)) > 0x0FFF))
 // NOTE: params are (firstVal, secondVal)
 #define HAS_HALF_CARRY_8(n1, n2) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu)) > 0x0F)
+// NOTE: params are (firstVal, secondVal, carry flag)
+#define HAS_HALF_CARRY_8c(n1, n2, c) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu) + c) > 0x0F)
 // NOTE: I have to check again whether this is what they mean with the Half carry condition
 #define HAS_HALF_CARRY_DECREMENT_8(n) ((((n) & 0x0Fu) == 0x0Fu))
 #define IS_ZERO_8(n) ((n) == 0)
@@ -134,6 +142,32 @@ int CPU::ADD_A_REG(uint8_t REG) {
     // set C if overflow from bit 7
     SetFlag(C, HAS_CARRY_8(regs.af.A, n1, n2));
     return 1;
+}
+
+int CPU::ADD_A_Addr_REG16(uint16_t REG) {
+    // returns 2
+    return ADD_A_REG(READ(REG)) + 1;
+}
+
+int CPU::ADC_A_REG(uint8_t REG) {
+    auto c = GetFlag(C);
+    auto n1 = regs.af.A;
+    auto n2 = REG;
+    regs.af.A = n1 + n2 + c;
+    // set Z flag if the result is zero
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    // unset N flag
+    SetFlag(N, false);
+    // set H if overflow from bit 3
+    SetFlag(H, HAS_HALF_CARRY_8c(n1, n2, c));
+    // set C if overflow from bit 7
+    SetFlag(C, HAS_CARRY_8_c(regs.af.A, n1, n2, c));
+    return 1;
+}
+
+int CPU::ADC_A_Addr_REG16(uint16_t REG) {
+    // returns 2
+    return ADC_A_REG(READ(REG)) + 1;
 }
 
 // Load value into register and post-decrement register address
@@ -1285,44 +1319,64 @@ CPU::OPCODE CPU::ADD_A_L() {
     return ADD_A_REG(regs.hl.L);
 }
 
+// add the value pointed to by HL to A
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADD_A_Addr_HL() {
-    return 0;
+    return ADD_A_Addr_REG16(regs.hl.HL);
 }
 
+// add the value in A to A
+// Z affected N unset, H affected, C affected
 CPU::OPCODE CPU::ADD_A_A() {
-    return 0;
+    return ADD_A_REG(regs.af.A);
 }
 
+// add the value in B to A plus carry flag
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADC_A_B() {
-    return 0;
+    return ADC_A_REG(regs.bc.B);
 }
 
+// add the value in C to A plus carry flag
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADC_A_C() {
-    return 0;
+    return ADC_A_REG(regs.bc.C);
 }
 
+// add the value in D to A plus carry flag
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADC_A_D() {
-    return 0;
+    return ADC_A_REG(regs.de.D);
 }
 
+// add the value in E to A plus carry flag
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADC_A_E() {
-    return 0;
+    return ADC_A_REG(regs.de.E);
 }
 
+// add the value in H to A plus carry flag
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADC_A_H() {
-    return 0;
+    return ADC_A_REG(regs.hl.H);
 }
 
+// add the value in L to A plus carry flag
+//  Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADC_A_L() {
-    return 0;
+    return ADC_A_REG(regs.hl.L);
 }
 
+// add the value pointed to by HL to A plus carry flag
+// Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADC_A_Addr_HL() {
-    return 0;
+    return ADC_A_Addr_REG16(regs.hl.HL);
 }
 
+// add the value in A to A plus carry flag
+//  Z affected, N unset, H affected, C affected
 CPU::OPCODE CPU::ADC_A_A() {
-    return 0;
+    return ADC_A_REG(regs.af.A);
 }
 
 CPU::OPCODE CPU::SUB_A_B() {

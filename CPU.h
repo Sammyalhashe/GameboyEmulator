@@ -2,6 +2,7 @@
 // Created by Sammy Al Hashemi on 2020-02-02.
 //
 
+#include <_types/_uint16_t.h>
 #include <_types/_uint8_t.h>
 #include <algorithm>
 #include <cstdint>
@@ -196,6 +197,9 @@ private: //OPCODES
      */
     int ADD_HL_REG(uint16_t REG);
     int ADD_A_REG(uint8_t REG);
+    int ADD_A_Addr_REG16(uint16_t REG);
+    int ADC_A_REG(uint8_t REG);
+    int ADC_A_Addr_REG16(uint16_t REG);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();
