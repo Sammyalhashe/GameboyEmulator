@@ -228,6 +228,11 @@ int CPU::SBC_A_REG(uint8_t REG) {
     return 1;
 }
 
+int CPU::SBC_A_Addr_REG16(uint16_t REG) {
+    // returns 2
+    return SBC_A_REG(READ(REG)) + 1;
+}
+
 // Load value into register and post-decrement register address
 int CPU::LDD_Addr_REG_reg(uint16_t& REG, uint8_t& reg, bool inc) {
     if (inc) {
@@ -1467,48 +1472,70 @@ CPU::OPCODE CPU::SUB_A_H() {
     return SUB_A_REG(regs.hl.H);
 }
 
+// sub the value in L from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SUB_A_L() {
-    return 0;
+    return SUB_A_REG(regs.hl.L);
 }
 
+// sub the value pointed to by HL from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SUB_A_Addr_HL() {
-    return 0;
+    return SUB_A_Addr_REG16(regs.hl.HL);
 }
 
+// sub the value in A from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SUB_A_A() {
-    return 0;
+    return SUB_A_REG(regs.af.A);
 }
 
+// sub the value in B and the carry flag from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SBC_A_B() {
-    return 0;
+    return SBC_A_REG(regs.bc.B);
 }
 
+// sub the value in C and the carry flag from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SBC_A_C() {
-    return 0;
+    return SBC_A_REG(regs.bc.C);
 }
 
+// sub the value in D and the carry flag from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SBC_A_D() {
-    return 0;
+    return SBC_A_REG(regs.de.D);
 }
 
+// sub the value in E and the carry flag from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SBC_A_E() {
-    return 0;
+    return SBC_A_REG(regs.de.E);
 }
 
+// sub the value in H and the carry flag from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SBC_A_H() {
-    return 0;
+    return SBC_A_REG(regs.hl.H);
 }
 
+// sub the value in L and the carry flag from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SBC_A_L() {
-    return 0;
+    return SBC_A_REG(regs.hl.L);
 }
 
+// sub the value pointed to by HL and the carry flag from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SBC_A_Addr_HL() {
-    return 0;
+    return SBC_A_Addr_REG16(regs.hl.HL);
 }
 
+// sub the value in A and the carry flag from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SBC_A_A() {
-    return 0;
+    return SBC_A_REG(regs.af.A);
 }
 
 CPU::OPCODE CPU::AND_A_B() {

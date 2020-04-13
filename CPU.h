@@ -203,6 +203,7 @@ private: //OPCODES
     int SUB_A_REG(uint8_t REG);
     int SUB_A_Addr_REG16(uint16_t REG);
     int SBC_A_REG(uint8_t REG);
+    int SBC_A_Addr_REG16(uint16_t REG);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();

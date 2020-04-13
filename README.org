@@ -1,14 +1,27 @@
+#+REVEAL_THEME: sky
 * Gameboy Emulator
 ** Originally titled NESEMULATOR as I wanted to emulate an NES first.
 * Resources Used
-   | General                 | Memory/OPCODES            | CPU             | Graphics |
-   |-------------------------+---------------------------+-----------------+----------|
-   | [[http://emudev.de/gameboy-emulator/overview/][Nice Blog]]               | [[https://izik1.github.io/gbops/index.html][Primary Ops]]               | [[https://rednex.github.io/rgbds/gbz80.7.html#RLC_r8][OPCODES Summary]] |          |
-   | [[https://www.youtube.com/watch?v=HyzD8pNlpwI][Good Talk]]               | [[http://imrannazar.com/GameBoy-Z80-Opcode-Map][Secondary Ops]]             | [[http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf][Gameboy CPU]]     |          |
-   | [[https://discordapp.com/channels/465585922579103744/641335509393866753][Emulation Discord]]       | [[https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html][Third Ops]]                 |                 |          |
-   | [[https://www.zophar.net/fileuploads/2/10597teazh/gbrom.txt][GameBoy header ROM info]] | [[https://stackoverflow.com/questions/8868396/game-boy-what-constitutes-a-half-carry][On Half carrys]]            |                 |          |
-   |                         | [[https://forums.nesdev.com/viewtopic.php?t=15944][Blog entry for DAA OPCODE]] |                 |          |
-
+** General Resources
+   | General                 |
+   |-------------------------|
+   | [[http://emudev.de/gameboy-emulator/overview/][Nice Blog]]               |
+   | [[https://www.youtube.com/watch?v=HyzD8pNlpwI][Good Talk]]               |
+   | [[https://discordapp.com/channels/465585922579103744/641335509393866753][Emulation Discord]]       |
+   | [[https://www.zophar.net/fileuploads/2/10597teazh/gbrom.txt][GameBoy header ROM info]] |
+   |                         |
+** CPU
+| Memory/OPCODES            | CPU             |
+|---------------------------+-----------------|
+| [[https://izik1.github.io/gbops/index.html][Primary Ops]]               | [[https://rednex.github.io/rgbds/gbz80.7.html#RLC_r8][OPCODES Summary]] |
+| [[http://imrannazar.com/GameBoy-Z80-Opcode-Map][Secondary Ops]]             | [[http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf][Gameboy CPU]]     |
+| [[https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html][Third Ops]]                 |                 |
+| [[https://stackoverflow.com/questions/8868396/game-boy-what-constitutes-a-half-carry][On Half carrys]]            |                 |
+| [[https://forums.nesdev.com/viewtopic.php?t=15944][Blog entry for DAA OPCODE]] |                 |
+** Graphics
+| Graphics |
+|----------|
+|          |
 * Task list
 
 ** DONE Finish up Resources Used Table
@@ -23,3 +36,39 @@
     DEADLINE: <2020-03-28 Sat>
     - [X] Header definitions
     - [ ] Implementations
+
+* Components
+- Bus interface
+- CPU
+- PPU
+** CPU
+**** Macros
+***** 16 Bit Carry
+#+BEGIN_SRC cpp
+// NOTE: params are (result, firstVal, secondVal, [carry])
+#define HAS_CARRY(nn, nn1, nn2) ((uint16_t)(((nn) < (nn1))) | (uint16_t)(((nn) < (nn2))))
+#define HAS_CARRY_c(nn, nn1, nn2, c) ((uint16_t)(((nn - c) < (nn1))) | (uint16_t)(((nn - c) < (nn2))))
+#+END_SRC
+***** 8 Bit Carry
+#+BEGIN_SRC cpp
+// NOTE: params are (result, firstVal, secondVal, [carry])
+#define HAS_CARRY_8(n, n1, n2) ((uint8_t)(((n) < (n1))) | (uint8_t)(((n) < (n2))))
+#define HAS_CARRY_8_c(n, n1, n2, c) ((uint8_t)(((n - c) < (n1))) | (uint8_t)(((n - c) < (n2))))
+#+END_SRC
+***** 16 Bit Half-Carry
+#+BEGIN_SRC cpp
+// NOTE: params are (result, firstVal, secondVal)
+// NOTE: params are (firstVal, secondVal)
+#define HAS_HALF_CARRY(nn1, nn2) (((((nn1) & 0x0FFFu) + ((nn2) + 0x0FFFu)) > 0x0FFF))
+#+END_SRC
+
+***** 8 Bit Half-Carry
+#+BEGIN_SRC cpp
+// NOTE: params are (firstVal, secondVal, [carry])
+#define HAS_HALF_CARRY_8(n1, n2) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu)) > 0x0F)
+#define HAS_HALF_CARRY_8c(n1, n2, c) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu) + c) > 0x0F)
+#+END_SRC
+
+**** Helpers
+*** OPCODES
+- See the OPCODES section of [[*Resources Used][Resources Used]] for more information.
