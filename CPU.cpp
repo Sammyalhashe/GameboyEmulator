@@ -5,6 +5,7 @@
 #include "CPU.h"
 #include "Bus.h"
 #include <_types/_uint16_t.h>
+#include <_types/_uint8_t.h>
 #include <cstdint>
 
 // This register keeps track if an interrupt condition was met or not
@@ -37,6 +38,14 @@
 #define HAS_HALF_CARRY_8c(n1, n2, c) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu) + c) > 0x0F)
 // NOTE: I have to check again whether this is what they mean with the Half carry condition
 #define HAS_HALF_CARRY_DECREMENT_8(n) ((((n) & 0x0Fu) == 0x0Fu))
+// params are (firstVal, secondVal) where firstVal - secondVal
+#define HAS_BORROW_8(n1, n2) (n2 > n1)
+#define HAS_BORROW_8c(n1, n2, c) ((n2 > n1) | ((n2 + c) > n1))
+// params are (firstVal, secondVal) where firstVal - secondVal
+#define HAS_HALF_BORROW_8(n1, n2) ((n2 & 0x0Fu) > (n1 & 0x0Fu))
+// NOTE: n1 - n2 - c = n1 - (n2 + c)
+// params are (firstVal, secondVal, carry flag)
+#define HAS_HALF_BORROW_8c(n1, n2, c) (((n2 & 0x0Fu) + c) > (n1 & 0x0Fu))
 #define IS_ZERO_8(n) ((n) == 0)
 
 
@@ -168,6 +177,55 @@ int CPU::ADC_A_REG(uint8_t REG) {
 int CPU::ADC_A_Addr_REG16(uint16_t REG) {
     // returns 2
     return ADC_A_REG(READ(REG)) + 1;
+}
+
+/*
+ * Subtracts the value in REG from A
+ * and stores the result in A.
+ * Affects Z, N is set, H if there is a borrow from bit 4
+ * C if there is a borrow (website tells me set if REG > A)
+ */
+int CPU::SUB_A_REG(uint8_t REG) {
+    auto n1 = regs.af.A;
+    auto n2 = REG;
+    regs.af.A = n1 - n2;
+    // Set if A becomes 0
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    // N is set
+    SetFlag(N, true);
+    // set H if there is a borrow from bit 4
+    SetFlag(H, HAS_HALF_BORROW_8(n1, n2));
+    // set C is there is a borrow (REG > A)
+    // See https://rednex.github.io/rgbds/gbz80.7.html#SUB_A,r8
+    SetFlag(C, HAS_HALF_BORROW_8(n1, n2));
+    return 1;
+}
+
+int CPU::SUB_A_Addr_REG16(uint16_t REG) {
+    // returns 2
+    return SUB_A_REG(READ(REG)) + 1;
+}
+
+/*
+ * Subtract the value in REG and the carry flag from A
+ * Affects Z, N is set, set H if borrow from bit 4
+ * Set C if borrow (site says REG + carry > A)
+ * See https://rednex.github.io/rgbds/gbz80.7.html#SBC_A,r8
+ */
+int CPU::SBC_A_REG(uint8_t REG) {
+    auto n1 = regs.af.A;
+    auto n2 = REG;
+    auto c = GetFlag(C);
+    regs.af.A = n1 - n2 - c;
+    // Set Z if A is zero
+    SetFlag(Z, regs.af.A);
+    // Set N
+    SetFlag(N, true);
+    // Set if borrow from bit 4
+    SetFlag(H, HAS_HALF_BORROW_8c(n1, n2, c));
+    // Set if borrow (REG + c > A)
+    SetFlag(C, HAS_BORROW_8c(n1, n2, c));
+    return 1;
 }
 
 // Load value into register and post-decrement register address
@@ -1379,24 +1437,34 @@ CPU::OPCODE CPU::ADC_A_A() {
     return ADC_A_REG(regs.af.A);
 }
 
+// sub the value in B from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SUB_A_B() {
-    return 0;
+    return SUB_A_REG(regs.bc.B);
 }
 
+// sub the value in C from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SUB_A_C() {
-    return 0;
+    return SUB_A_REG(regs.bc.C);
 }
 
+// sub the value in D from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SUB_A_D() {
-    return 0;
+    return SUB_A_REG(regs.de.D);
 }
 
+// sub the value in E from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SUB_A_E() {
-    return 0;
+    return SUB_A_REG(regs.de.E);
 }
 
+// sub the value in H from A
+// Z affected, N set, H affected, C affected
 CPU::OPCODE CPU::SUB_A_H() {
-    return 0;
+    return SUB_A_REG(regs.hl.H);
 }
 
 CPU::OPCODE CPU::SUB_A_L() {
