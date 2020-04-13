@@ -197,13 +197,53 @@ int CPU::SUB_A_REG(uint8_t REG) {
     SetFlag(H, HAS_HALF_BORROW_8(n1, n2));
     // set C is there is a borrow (REG > A)
     // See https://rednex.github.io/rgbds/gbz80.7.html#SUB_A,r8
-    SetFlag(C, HAS_HALF_BORROW_8(n1, n2));
+    SetFlag(C, HAS_BORROW_8(n1, n2));
     return 1;
 }
 
+
+/**
+ * Substract the value in REG from A, but DO NOT store the result.
+ * This is useful for comparisons.
+ * Has the same flags as SUB:
+ * Z affected, N set, H if borrow from bit 4, C if borrow (REG > A)
+ */
+int CPU::CP_A_REG(uint8_t REG) {
+    auto n1 = regs.af.A;
+    auto n2 = REG;
+    auto res = n1 - n2;
+    // Set if A becomes 0
+    SetFlag(Z, IS_ZERO_8(res));
+    // N is set
+    SetFlag(N, true);
+    // set H if there is a borrow from bit 4
+    SetFlag(H, HAS_HALF_BORROW_8(n1, n2));
+    // set C is there is a borrow (REG > A)
+    // See https://rednex.github.io/rgbds/gbz80.7.html#SUB_A,r8
+    SetFlag(C, HAS_BORROW_8(n1, n2));
+    return 1;
+}
+
+/*
+ * Subtracts the value REG points to from A
+ * and stores the result in A.
+ * Affects Z, N is set, H if there is a borrow from bit 4
+ * C if there is a borrow (website tells me set if REG > A)
+ */
 int CPU::SUB_A_Addr_REG16(uint16_t REG) {
     // returns 2
     return SUB_A_REG(READ(REG)) + 1;
+}
+
+/**
+ * Substract the value REG points to from A, but DO NOT store the result.
+ * This is useful for comparisons.
+ * Has the same flags as SUB:
+ * Z affected, N set, H if borrow from bit 4, C if borrow (REG > A)
+ */
+int CPU::CP_A_Addr_REG16(uint16_t REG) {
+    // returns 2
+    return CP_A_REG(READ(REG)) + 1;
 }
 
 /*
@@ -231,6 +271,81 @@ int CPU::SBC_A_REG(uint8_t REG) {
 int CPU::SBC_A_Addr_REG16(uint16_t REG) {
     // returns 2
     return SBC_A_REG(READ(REG)) + 1;
+}
+
+/**
+ * Bitwise AND between A and the value in REG
+ * Store the result back in A
+ * Z affected, N unset, H set, C unset
+ */
+int CPU::AND_A_REG(uint8_t REG) {
+    regs.af.A &= REG;
+    SetFlag(Z, regs.af.A);
+    SetFlag(N, false);
+    SetFlag(H, true);
+    SetFlag(C, false);
+    return 1;
+}
+
+/**
+ * Bitwise AND between A and the value REG points to
+ * Store the result back in A
+ * Z affected, N unset, H set, C unset
+ */
+int CPU::AND_A_Addr_REG16(uint16_t REG) {
+    // returns 2
+    return AND_A_REG(READ(REG)) + 1;
+}
+
+/**
+ * Bitwise XOR between A and REG.
+ * The result is stored in A.
+ * Z affected, rest are unset
+ */
+int CPU::XOR_A_REG(uint8_t REG) {
+    regs.af.A ^= REG;
+    // Set Z if result is zero
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    // rest are unset
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, false);
+    return 1;
+}
+
+/**
+ * Bitwise XOR between A and the value pointed to by REG.
+ * Flags are the same as XOR_A_REG.
+ */
+int CPU::XOR_A_Addr_REG16(uint16_t REG) {
+    // returns 2
+    return XOR_A_REG(READ(REG)) + 1;
+}
+
+
+/**
+ * Bitwise OR between A and REG.
+ * The result is stored in A.
+ * Z affected, rest are unset
+ */
+int CPU::OR_A_REG(uint8_t REG) {
+    regs.af.A ^= REG;
+    // Set Z if result is zero
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    // rest are unset
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, false);
+    return 1;
+}
+
+/**
+ * Bitwise OR between A and the value pointed to by REG.
+ * Flags are the same as XOR_A_REG.
+ */
+int CPU::OR_A_Addr_REG16(uint16_t REG) {
+    // returns 2
+    return OR_A_REG(READ(REG)) + 1;
 }
 
 // Load value into register and post-decrement register address
@@ -1538,132 +1653,215 @@ CPU::OPCODE CPU::SBC_A_A() {
     return SBC_A_REG(regs.af.A);
 }
 
+/*
+ * Bitwise AND betwen A and B
+ * Z affected, N unset, H set, C unset
+ */
 CPU::OPCODE CPU::AND_A_B() {
-    return 0;
+    return AND_A_REG(regs.bc.B);
 }
 
+// Bitwise AND between A and C
+// Z affaceted, N unset, H set, C unset
 CPU::OPCODE CPU::AND_A_C() {
-    return 0;
+    return AND_A_REG(regs.bc.C);
 }
 
+// Bitwise AND between A and D
+// Z affected, N unset, H set, C unset
 CPU::OPCODE CPU::AND_A_D() {
-    return 0;
+    return AND_A_REG(regs.de.D);
 }
 
+//  Bitwise AND between A and E
+// Z affected, N unset, H set, C unset
 CPU::OPCODE CPU::AND_A_E() {
-    return 0;
+    return AND_A_REG(regs.de.E);
 }
 
+//  Bitwise AND between A and H
+// Z affected, N unset, H set, C unset
 CPU::OPCODE CPU::AND_A_H() {
-    return 0;
+    return AND_A_REG(regs.hl.H);
 }
 
+//  Bitwise AND between A and L
+// Z affected, N unset, H set, C unset
 CPU::OPCODE CPU::AND_A_L() {
-    return 0;
+    return AND_A_REG(regs.hl.L);
 }
 
+//  Bitwise AND between A and the value pointed to by HL
+// Z affected, N unset, H set, C unset
 CPU::OPCODE CPU::AND_A_Addr_HL() {
-    return 0;
+    return AND_A_Addr_REG16(regs.hl.HL);
 }
 
+//  Bitwise AND between A and A
+// Z affected, N unset, H set, C unset
 CPU::OPCODE CPU::AND_A_A() {
-    return 0;
+    return AND_A_REG(regs.af.A);
 }
 
+// Bitwise XOR between A and B
+// Z affected, rest unset
 CPU::OPCODE CPU::XOR_A_B() {
-    return 0;
+    return XOR_A_REG(regs.bc.B);
 }
 
+// Bitwise XOR between A and C
+// Z affected, rest unset
 CPU::OPCODE CPU::XOR_A_C() {
-    return 0;
+    return XOR_A_REG(regs.bc.C);
 }
 
+// Bitwise XOR between A and D
+// Z affected, rest unset
 CPU::OPCODE CPU::XOR_A_D() {
-    return 0;
+    return XOR_A_REG(regs.de.D);
 }
 
+// Bitwise XOR between A and E
+// Z affected, rest unset
 CPU::OPCODE CPU::XOR_A_E() {
-    return 0;
+    return XOR_A_REG(regs.de.E);
 }
 
+// Bitwise XOR between A and H
+// Z affected, rest unset
 CPU::OPCODE CPU::XOR_A_H() {
-    return 0;
+    return XOR_A_REG(regs.hl.H);
 }
 
+// Bitwise XOR between A and L
+// Z affected, rest unset
 CPU::OPCODE CPU::XOR_A_L() {
-    return 0;
+    return XOR_A_REG(regs.hl.L);
 }
 
+// Bitwise XOR between A and the value pointed to by HL
+// Z affected, rest unset
 CPU::OPCODE CPU::XOR_A_Addr_HL() {
-    return 0;
+    return XOR_A_Addr_REG16(regs.hl.HL);
 }
 
+// Bitwise XOR between A and A
+// Z affected, rest unset
 CPU::OPCODE CPU::XOR_A_A() {
-    return 0;
+    return XOR_A_REG(regs.af.A);
 }
 
+// Bitwise OR between A and B
+// Z affected, rest unset
 CPU::OPCODE CPU::OR_A_B() {
-    return 0;
+    return OR_A_REG(regs.bc.B);
 }
 
+// Bitwise OR between A and C
+// Z affected, rest unset
 CPU::OPCODE CPU::OR_A_C() {
-    return 0;
+    return OR_A_REG(regs.bc.C);
 }
 
+// Bitwise OR between A and D
+// Z affected, rest unset
 CPU::OPCODE CPU::OR_A_D() {
-    return 0;
+    return OR_A_REG(regs.de.D);
 }
 
+// Bitwise OR between A and E
+// Z affected, rest unset
 CPU::OPCODE CPU::OR_A_E() {
-    return 0;
+    return OR_A_REG(regs.de.E);
 }
 
+// Bitwise OR between A and H
+// Z affected, rest unset
 CPU::OPCODE CPU::OR_A_H() {
-    return 0;
+    return OR_A_REG(regs.hl.H);
 }
 
+// Bitwise OR between A and L
+// Z affected, rest unset
 CPU::OPCODE CPU::OR_A_L() {
-    return 0;
+    return OR_A_REG(regs.hl.L);
 }
 
+// Bitwise OR between A and value pointed to by HL
+// Z affected, rest unset
 CPU::OPCODE CPU::OR_A_Addr_HL() {
-    return 0;
+    return OR_A_Addr_REG16(regs.hl.HL);
 }
 
+// Bitwise OR between A and A
+// Z affected, rest unset
 CPU::OPCODE CPU::OR_A_A() {
-    return 0;
+    return OR_A_REG(regs.af.A);
 }
 
+// substract the value in B from A
+// do not store the result
+// Z affected, N set, H if borrow from bit 4
+// C affected if borrow (REG > A)
 CPU::OPCODE CPU::CP_A_B() {
-    return 0;
+    return CP_A_REG(regs.bc.B);
 }
 
+// substract the value in C from A
+// do not store the result
+// Z affected, N set, H if borrow from bit 4
+// C affected if borrow (REG > A)
 CPU::OPCODE CPU::CP_A_C() {
-    return 0;
+    return CP_A_REG(regs.bc.C);
 }
 
+// substract the value in D from A
+// do not store the result
+// Z affected, N set, H if borrow from bit 4
+// C affected if borrow (REG > A)
 CPU::OPCODE CPU::CP_A_D() {
-    return 0;
+    return CP_A_REG(regs.de.D);
 }
 
+// substract the value in E from A
+// do not store the result
+// Z affected, N set, H if borrow from bit 4
+// C affected if borrow (REG > A)
 CPU::OPCODE CPU::CP_A_E() {
-    return 0;
+    return CP_A_REG(regs.de.E);
 }
 
+// substract the value in H from A
+// do not store the result
+// Z affected, N set, H if borrow from bit 4
+// C affected if borrow (REG > A)
 CPU::OPCODE CPU::CP_A_H() {
-    return 0;
+    return CP_A_REG(regs.hl.H);
 }
 
+// substract the value in L from A
+// do not store the result
+// Z affected, N set, H if borrow from bit 4
+// C affected if borrow (REG > A)
 CPU::OPCODE CPU::CP_A_L() {
-    return 0;
+    return CP_A_REG(regs.hl.L);
 }
 
+// substract the value stored in HL from A
+// do not store the result
+// Z affected, N set, H if borrow from bit 4
+// C affected if borrow (REG > A)
 CPU::OPCODE CPU::CP_A_Addr_HL() {
-    return 0;
+    return CP_A_Addr_REG16(regs.hl.HL);
 }
 
+
+// substract the value in A from A
+// do not store the result
+// Z affected, N set, H if borrow from bit 4
+// C affected if borrow (REG > A)
 CPU::OPCODE CPU::CP_A_A() {
-    return 0;
+    return CP_A_REG(regs.af.A);
 }
 
 CPU::OPCODE CPU::RET_NZ() {

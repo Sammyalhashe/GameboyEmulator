@@ -196,6 +196,9 @@ private: //OPCODES
      * vary per operation.
      */
     int ADD_HL_REG(uint16_t REG);
+    /**
+     * Adds the value stored in REG to A and stores the result in A.
+     */
     int ADD_A_REG(uint8_t REG);
     int ADD_A_Addr_REG16(uint16_t REG);
     int ADC_A_REG(uint8_t REG);
@@ -204,6 +207,14 @@ private: //OPCODES
     int SUB_A_Addr_REG16(uint16_t REG);
     int SBC_A_REG(uint8_t REG);
     int SBC_A_Addr_REG16(uint16_t REG);
+    int AND_A_REG(uint8_t REG);
+    int AND_A_Addr_REG16(uint16_t REG);
+    int XOR_A_REG(uint8_t REG);
+    int XOR_A_Addr_REG16(uint16_t REG);
+    int OR_A_REG(uint8_t REG);
+    int OR_A_Addr_REG16(uint16_t REG);
+    int CP_A_REG(uint8_t REG);
+    int CP_A_Addr_REG16(uint16_t REG);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();
