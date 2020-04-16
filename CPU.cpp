@@ -53,7 +53,7 @@ CPU::CPU() {}
 
 CPU::~CPU()=default;
 
-u_int8_t CPU::READ(u_int16_t addr, bool read_only)
+uint8_t CPU::READ(u_int16_t addr, bool read_only)
 {
     // check for range validity occurs within bus implementation
     return bus->READ(addr);
@@ -62,6 +62,116 @@ u_int8_t CPU::READ(u_int16_t addr, bool read_only)
 void CPU::WRITE(u_int16_t addr, u_int8_t data)
 {
     bus->WRITE(addr, data);
+}
+
+uint16_t CPU::popFromStack() {
+    uint8_t n1 = READ(regs.sp++);
+    uint8_t n2 = READ(regs.sp++);
+    return (n2 << 8) | n1;
+}
+
+void CPU::pushToStack(uint16_t ADDR) {
+    // push MSB first
+    WRITE(regs.sp--, ADDR >> 8);
+    // then push LSB
+    WRITE(regs.sp--, ADDR & 0x00FFu);
+}
+
+/**
+ * Pop register from the stack.
+ * Roughly equivalent to the following operations:
+ * ld LOW(r16), [sp] ; C, E or L
+ * inc sp
+ * ld HIGH(r16), [sp] ; B, D or H
+ * inc sp
+ * No flags are affected
+ */
+int CPU::POP_REG(uint16_t& REG) {
+    uint8_t low = READ(regs.sp) ;
+    regs.sp++;
+    uint8_t high = READ(regs.sp);
+    regs.sp++;
+    REG = (high << 8) | low;
+    return 3;
+}
+
+/**
+ * Jump to address nn if condition CC is met.
+ * No flags affected
+ * TODO: w/wo interrupts: 4/3 cycles
+ */
+int CPU::JP_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
+    if (CC) {
+        if (GetFlag(FLAG)) {
+            regs.pc = nn;
+        }
+    } else {
+        if (!GetFlag(FLAG)) {
+            regs.pc = nn;
+        }
+    }
+    return 3;
+}
+
+/**
+ * CALL pushes the address of the instruction AFTER CALL on the stack
+ * This is so RET can pop it later
+ * It then executes an implicit JP nn
+ * no flags affected
+ * TODO: w/wo interrupts 6/3 cycles
+ */
+int CPU::CALL_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
+    if (CC) {
+        if (GetFlag(FLAG)) {
+            pushToStack(regs.pc);
+            regs.pc = nn;
+        }
+    } else {
+        if (!GetFlag(FLAG)) {
+            pushToStack(regs.pc);
+            regs.pc = nn;
+        }
+    }
+    return 3;
+}
+
+
+/**
+ * Return from suboutine if condition CC for Z80_FLAG FLAG is met
+ * Basically POP PC
+ * TODO: w/wo interrupts: 5/2
+ */
+int CPU::RET_CC(Z80_FLAGS FLAG, bool CC) {
+    if (CC) {
+        if (GetFlag(FLAG)) {
+            POP_REG(regs.pc);
+        }
+    } else {
+        if (!GetFlag(FLAG)) {
+            POP_REG(regs.pc);
+        }
+    }
+    return 2;
+}
+
+
+/**
+ * Push register REG onto the stack
+ * This is roughly equivalent to the following instructions:
+ * dec sp
+ * ld [sp], HIGH(REG) ; B, D, H
+ * dec sp
+ * ld [sp], LOW(REG) ; C, E, L
+ * NOTE: recall that the stack starts at a high memory and grows downwards
+ * no flags affected
+ * 4 cycles
+ */
+int CPU::PUSH_REG(uint16_t REG) {
+    // load the MSB onto the stack
+    WRITE(--regs.sp, REG >> 8u);
+    // load the LSB onto the stack
+    WRITE(--regs.sp, REG & 0x00FFu);
+    return 4;
 }
 
 // Read two-bytes for instructions that load in nn (for example)
@@ -153,6 +263,26 @@ int CPU::ADD_A_REG(uint8_t REG) {
     return 1;
 }
 
+/**
+ * Add the value of n8 to A
+ * Flags are the same as ADD_A_REG (see above)
+ * 2 cycles
+ */
+int CPU::ADD_A_n8(uint8_t n) {
+    auto n1 = regs.af.A;
+    auto n2 = n;
+    regs.af.A = n1 + n2;
+    // set Z flag if the result is zero
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    // unset N flag
+    SetFlag(N, false);
+    // set H if overflow from bit 3
+    SetFlag(H, HAS_HALF_CARRY_8(n1, n2));
+    // set C if overflow from bit 7
+    SetFlag(C, HAS_CARRY_8(regs.af.A, n1, n2));
+    return 2;
+}
+
 int CPU::ADD_A_Addr_REG16(uint16_t REG) {
     // returns 2
     return ADD_A_REG(READ(REG)) + 1;
@@ -172,6 +302,22 @@ int CPU::ADC_A_REG(uint8_t REG) {
     // set C if overflow from bit 7
     SetFlag(C, HAS_CARRY_8_c(regs.af.A, n1, n2, c));
     return 1;
+}
+
+int CPU::ADC_A_n8(uint8_t n) {
+    auto c = GetFlag(C);
+    auto n1 = regs.af.A;
+    auto n2 = n;
+    regs.af.A = n1 + n2 + c;
+    // set Z flag if the result is zero
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    // unset N flag
+    SetFlag(N, false);
+    // set H if overflow from bit 3
+    SetFlag(H, HAS_HALF_CARRY_8c(n1, n2, c));
+    // set C if overflow from bit 7
+    SetFlag(C, HAS_CARRY_8_c(regs.af.A, n1, n2, c));
+    return 2;
 }
 
 int CPU::ADC_A_Addr_REG16(uint16_t REG) {
@@ -346,6 +492,22 @@ int CPU::OR_A_REG(uint8_t REG) {
 int CPU::OR_A_Addr_REG16(uint16_t REG) {
     // returns 2
     return OR_A_REG(READ(REG)) + 1;
+}
+
+/**
+ * Call address vec. Shorter/faster equivalent to CALL for suitable values of vec.
+ * RST Vectors: 0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38
+ * No flags affected
+ * 4 cycles
+ * NOTE: ignore that we are assigning an 8-bit unsigned to a 16-bit one
+ * Apparently this is how it is supposed to be.
+ * TODO: clarify if the number of cycles is truly supposed to be 4.
+ * I saw another resource online claiming it may be 8 (?)
+ */
+int CPU::RST_VEC(uint8_t VEC) {
+    pushToStack(regs.pc);
+    regs.pc = VEC;
+    return 4;
 }
 
 // Load value into register and post-decrement register address
@@ -1864,84 +2026,146 @@ CPU::OPCODE CPU::CP_A_A() {
     return CP_A_REG(regs.af.A);
 }
 
+// Pop the next instruction from the stack if the last result was NOT ZERO
+// TODO: When you get to interrupts, you have to update the amount of cycles returned to reflect
+// that
 CPU::OPCODE CPU::RET_NZ() {
-    return 0;
+    if (!GetFlag(Z)) {
+        regs.pc = popFromStack();
+    }
+    return 2;
 }
 
+// Pop from the stack onto BC
+// No flags are modified
 CPU::OPCODE CPU::POP_BC() {
-    return 0;
+    return POP_REG(regs.bc.BC);
 }
 
+// Jump to address nn if NOT ZERO
+// No flags affected
+// TODO: w/wo interrupts 4/3 cycles
 CPU::OPCODE CPU::JP_NZ_nn(uint16_t nn) {
-    return 0;
+    return JP_CC_n16(Z, false, nn);
 }
 
+// Jump to address nn
+// no flags affected
+// 4 cycles
 CPU::OPCODE CPU::JP_nn(uint16_t nn) {
-    return 0;
+    regs.pc = nn;
+    return 4;
 }
 
+// CALL pushes the address of the instruction AFTER CALL on the stack
+// This is so RET can pop it later
+// it then executes an implicit JP nn
+// Call address nn if NOT ZERO
+// no flags affected
+// TODO: w/wo interrupts: 6/3 cycles
 CPU::OPCODE CPU::CALL_NZ_nn(uint16_t nn) {
-    return 0;
+    return CALL_CC_n16(Z, false, nn);
 }
 
+// load the register BC onto the stack
 CPU::OPCODE CPU::PUSH_BC() {
-    return 0;
+    return PUSH_REG(regs.bc.BC);
 }
 
+// Adds the value n to A
+// Same flags affected as ADD_A_REG
 CPU::OPCODE CPU::ADD_A_n(uint8_t n) {
-    return 0;
+    return ADD_A_n8(n);
 }
 
+// Call address 0x00
 CPU::OPCODE CPU::RST_00h() {
-    return 0;
+    return RST_VEC(0x00u);
 }
 
+// Return from subroutine IF ZERO
+// Basically POP PC
+// TODO: w/wo interrupts 5/2
 CPU::OPCODE CPU::RET_Z() {
-    return 0;
+    return RET_CC(Z, true);
 }
 
+// Return from subroutine
+// Basically POP PC
+// 4 cycles
 CPU::OPCODE CPU::RET() {
-    return 0;
+    // returns 4 => 3 + 1
+    return POP_REG(regs.pc) + 1;
 }
 
+// Jump to address nn IF ZERO
+// TODO: w/wo interrupts 4/3 cycles
 CPU::OPCODE CPU::JP_Z_nn(uint16_t nn) {
-    return 0;
+    return JP_CC_n16(Z, true, nn);
 }
 
+// CALL pushes the address of the instruction AFTER CALL on the stack
+// This is so RET can pop it later
+// it then executes an implicit JP nn
+// Call address nn IF ZERO
+// no flags affected
+// TODO: w/wo interrupts: 6/3 cycles
 CPU::OPCODE CPU::CALL_Z_nn(uint16_t nn) {
-    return 0;
+    return CALL_CC_n16(Z, true, nn);
 }
 
+// CALL pushes the address of the instruction AFTER CALL on the stack
+// This is so RET can pop it later
+// It then executes an implicit JP nn
+// 6 cycles
 CPU::OPCODE CPU::CALL_nn(uint16_t nn) {
-    return 0;
+    pushToStack(regs.pc);
+    regs.pc = nn;
+    return 6;
 }
 
+// Add the value n plus the carry flag to A
+// 2 cycles
+// Same flags as ADD_A_REG
 CPU::OPCODE CPU::ADC_A_n(uint8_t n) {
-    return 0;
+    return ADC_A_n(n);
 }
 
+// Call address 0x08
 CPU::OPCODE CPU::RST_08h() {
-    return 0;
+    return RST_VEC(0x08u);
 }
 
+// Return from subroutine IF CARRY IS NOT SET
+// Basically POP PC
+// TODO: w/wo interrupts 5/2
 CPU::OPCODE CPU::RET_NC() {
-    return 0;
+    return RET_CC(C, false);
 }
 
+// Pop from the stack onto DE
+// No flags are modified
 CPU::OPCODE CPU::POP_DE() {
-    return 0;
+    return POP_REG(regs.de.DE);
 }
 
+// Jump to address nn if NOT CARRY
+// No flags affected
 CPU::OPCODE CPU::JP_NC_nn(uint16_t nn) {
-    return 0;
+    return JP_CC_n16(C, false, nn);
 }
 
+// CALL address nn if NOT CARRY
+// executes an implicit JP nn
+// no flags affected
 CPU::OPCODE CPU::CALL_NC_nn(uint16_t nn) {
-    return 0;
+    return CALL_CC_n16(C, false, nn);
 }
 
+// load the register DE onto the stack
+// no flags affected
 CPU::OPCODE CPU::PUSH_DE() {
-    return 0;
+    return PUSH_REG(regs.de.DE);
 }
 
 CPU::OPCODE CPU::SUB_A_n(uint8_t n) {

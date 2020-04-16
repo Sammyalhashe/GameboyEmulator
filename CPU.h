@@ -117,6 +117,9 @@ public:
     void connectBus(Bus *newBus) {bus = newBus;}
     // steps the CPU forward
     int stepCPU();
+    // pop next instruction (next program count) from stack
+    uint16_t popFromStack();
+    void pushToStack(uint16_t ADDR);
     void handleCycles(int cycles);
     void handleInterrupts();
 
@@ -125,7 +128,7 @@ private:
     void WRITE(u_int16_t addr, u_int8_t data);
     // Read from an address in memory (I use a long array - as seems standard - to represent my memory)
     // See implementation in Bus class
-    u_int8_t READ(u_int16_t addr, bool read_only = false);
+    uint8_t READ(u_int16_t addr, bool read_only = false);
 
 
 private:
@@ -200,8 +203,10 @@ private: //OPCODES
      * Adds the value stored in REG to A and stores the result in A.
      */
     int ADD_A_REG(uint8_t REG);
+    int ADD_A_n8(uint8_t n);
     int ADD_A_Addr_REG16(uint16_t REG);
     int ADC_A_REG(uint8_t REG);
+    int ADC_A_n8(uint8_t n);
     int ADC_A_Addr_REG16(uint16_t REG);
     int SUB_A_REG(uint8_t REG);
     int SUB_A_Addr_REG16(uint16_t REG);
@@ -215,6 +220,12 @@ private: //OPCODES
     int OR_A_Addr_REG16(uint16_t REG);
     int CP_A_REG(uint8_t REG);
     int CP_A_Addr_REG16(uint16_t REG);
+    int POP_REG(uint16_t& REG);
+    int PUSH_REG(uint16_t REG);
+    int RST_VEC(uint8_t VEC);
+    int JP_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn);
+    int CALL_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn);
+    int RET_CC(Z80_FLAGS FLAG, bool CC);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();
