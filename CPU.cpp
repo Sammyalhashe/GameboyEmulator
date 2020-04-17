@@ -67,12 +67,12 @@ void CPU::WRITE(u_int16_t addr, u_int8_t data)
 uint16_t CPU::popFromStack() {
     uint8_t n1 = READ(regs.sp++);
     uint8_t n2 = READ(regs.sp++);
-    return (n2 << 8) | n1;
+    return (uint8_t)(n2 << 8u) | n1;
 }
 
 void CPU::pushToStack(uint16_t ADDR) {
     // push MSB first
-    WRITE(regs.sp--, ADDR >> 8);
+    WRITE(regs.sp--, ADDR >> 8u);
     // then push LSB
     WRITE(regs.sp--, ADDR & 0x00FFu);
 }
@@ -91,7 +91,7 @@ int CPU::POP_REG(uint16_t& REG) {
     regs.sp++;
     uint8_t high = READ(regs.sp);
     regs.sp++;
-    REG = (high << 8) | low;
+    REG = (uint8_t)(high << 8u) | low;
     return 3;
 }
 
@@ -101,14 +101,10 @@ int CPU::POP_REG(uint16_t& REG) {
  * TODO: w/wo interrupts: 4/3 cycles
  */
 int CPU::JP_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
-    if (CC) {
-        if (GetFlag(FLAG)) {
-            regs.pc = nn;
-        }
-    } else {
-        if (!GetFlag(FLAG)) {
-            regs.pc = nn;
-        }
+    // CC = true; GetFlag should be 1
+    // CC = false; GetFlag should be 0
+    if (CC == GetFlag(FLAG)) {
+        regs.pc = nn;
     }
     return 3;
 }
@@ -121,35 +117,22 @@ int CPU::JP_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
  * TODO: w/wo interrupts 6/3 cycles
  */
 int CPU::CALL_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
-    if (CC) {
-        if (GetFlag(FLAG)) {
-            pushToStack(regs.pc);
-            regs.pc = nn;
-        }
-    } else {
-        if (!GetFlag(FLAG)) {
-            pushToStack(regs.pc);
-            regs.pc = nn;
-        }
+    if (CC == GetFlag(FLAG)) {
+        pushToStack(regs.pc);
+        regs.pc = nn;
     }
     return 3;
 }
 
 
 /**
- * Return from suboutine if condition CC for Z80_FLAG FLAG is met
+ * Return from subroutine if condition CC for Z80_FLAG FLAG is met
  * Basically POP PC
  * TODO: w/wo interrupts: 5/2
  */
 int CPU::RET_CC(Z80_FLAGS FLAG, bool CC) {
-    if (CC) {
-        if (GetFlag(FLAG)) {
-            POP_REG(regs.pc);
-        }
-    } else {
-        if (!GetFlag(FLAG)) {
-            POP_REG(regs.pc);
-        }
+    if (CC == GetFlag(FLAG)) {
+        POP_REG(regs.pc);
     }
     return 2;
 }
@@ -207,7 +190,7 @@ void CPU::SetFlag(CPU::Z80_FLAGS f, bool v) {
     }
 }
 
-uint8_t CPU::GetFlag(CPU::Z80_FLAGS f) {
+uint8_t CPU::GetFlag(CPU::Z80_FLAGS f) const {
     return (regs.f & f) > 0 ? 1 : 0;
 }
 
@@ -288,6 +271,35 @@ int CPU::ADD_A_Addr_REG16(uint16_t REG) {
     return ADD_A_REG(READ(REG)) + 1;
 }
 
+/**
+ * Add the signed value i to SP
+ * Z unset, N unset, H if overflow from bit 3, C if overflow from bit 7
+ * 4 cycles
+ * NOTE: int8_t negative types are represented by 2s complement.
+ * THESE ARE STILL 8-BIT NUMBERS.
+ * In addition, look at the definition of HAS_HALF_CARRY_8,
+ * IT ONLY LOOKS AT THE LSB OF THE 8-BIT NUMBER.
+ * IF THERE IS A HALF-CARRY IS THE SAME FOR BOTH SIGNED AND UNSIGNED
+ * SO THE OPERATION BELOW IS SAFE.
+ * Just for clarity of thought: check out https://repl.it/@selhash/LimeRubberyZip
+ * @param i
+ * @return
+ */
+int CPU::ADD_SP_i8(int8_t i) {
+    auto n1 = regs.sp;
+    auto n2 = i;
+    regs.sp = n1 + n2;
+    // set Z flag if the result is zero
+    SetFlag(Z, false);
+    // unset N flag
+    SetFlag(N, false);
+    // set H if overflow from bit 3
+    SetFlag(H, HAS_HALF_CARRY_8(n1, (uint8_t) n2));
+    // set C if overflow from bit 7
+    SetFlag(C, HAS_CARRY_8(regs.sp, n1, n2));
+    return 4;
+}
+
 int CPU::ADC_A_REG(uint8_t REG) {
     auto c = GetFlag(C);
     auto n1 = regs.af.A;
@@ -347,9 +359,30 @@ int CPU::SUB_A_REG(uint8_t REG) {
     return 1;
 }
 
+/**
+ * Subtract n from A.
+ * Same flags as SUB_A_REG.
+ * 2 cycles
+ */
+int CPU::SUB_A_n8(uint8_t n) {
+    auto n1 = regs.af.A;
+    auto n2 = n;
+    regs.af.A = n1 - n2;
+    // Set if A becomes 0
+    SetFlag(Z, IS_ZERO_8(regs.af.A));
+    // N is set
+    SetFlag(N, true);
+    // set H if there is a borrow from bit 4
+    SetFlag(H, HAS_HALF_BORROW_8(n1, n2));
+    // set C is there is a borrow (REG > A)
+    // See https://rednex.github.io/rgbds/gbz80.7.html#SUB_A,r8
+    SetFlag(C, HAS_BORROW_8(n1, n2));
+    return 2;
+}
+
 
 /**
- * Substract the value in REG from A, but DO NOT store the result.
+ * Subtract the value in REG from A, but DO NOT store the result.
  * This is useful for comparisons.
  * Has the same flags as SUB:
  * Z affected, N set, H if borrow from bit 4, C if borrow (REG > A)
@@ -414,6 +447,29 @@ int CPU::SBC_A_REG(uint8_t REG) {
     return 1;
 }
 
+/**
+ * Subtract the value n and the carry flag from A
+ * Same flags as SBC_A_REG
+ * 2 cycles
+ * @param n
+ * @return int
+ */
+int CPU::SBC_A_n8(uint8_t n) {
+    auto n1 = regs.af.A;
+    auto n2 = n;
+    auto c = GetFlag(C);
+    regs.af.A = n1 - n2 - c;
+    // Set Z if A is zero
+    SetFlag(Z, regs.af.A);
+    // Set N
+    SetFlag(N, true);
+    // Set if borrow from bit 4
+    SetFlag(H, HAS_HALF_BORROW_8c(n1, n2, c));
+    // Set if borrow (REG + c > A)
+    SetFlag(C, HAS_BORROW_8c(n1, n2, c));
+    return 2;
+}
+
 int CPU::SBC_A_Addr_REG16(uint16_t REG) {
     // returns 2
     return SBC_A_REG(READ(REG)) + 1;
@@ -431,6 +487,22 @@ int CPU::AND_A_REG(uint8_t REG) {
     SetFlag(H, true);
     SetFlag(C, false);
     return 1;
+}
+
+/**
+ * Bitwise AND between the value in n8 and A
+ * Same flags as ANA_A_REG
+ * 2 cycles
+ * @param n
+ * @return
+ */
+int CPU::AND_A_n8(uint8_t n) {
+    regs.af.A &= n;
+    SetFlag(Z, regs.af.A);
+    SetFlag(N, false);
+    SetFlag(H, true);
+    SetFlag(C, false);
+    return 2;
 }
 
 /**
@@ -1047,7 +1119,7 @@ CPU::OPCODE CPU::DAA() {
     uint8_t hFlag = GetFlag(H); // same
     if (!nFlag) {
       if (cFlag || regs.af.A > 0x99) { regs.af.A += 0x60; SetFlag(C, true); }
-      if (hFlag || (regs.af.A & 0x0f) > 0x09) { regs.af.A += 0x06; }
+      if (hFlag || (regs.af.A & 0x0fu) > 0x09) { regs.af.A += 0x06; }
     } else {
       if (cFlag) { regs.af.A += 0x60; }
       if (hFlag) { regs.af.A += 0x06; }
@@ -2128,7 +2200,7 @@ CPU::OPCODE CPU::CALL_nn(uint16_t nn) {
 // 2 cycles
 // Same flags as ADD_A_REG
 CPU::OPCODE CPU::ADC_A_n(uint8_t n) {
-    return ADC_A_n(n);
+    return ADC_A_n8(n);
 }
 
 // Call address 0x08
@@ -2168,68 +2240,106 @@ CPU::OPCODE CPU::PUSH_DE() {
     return PUSH_REG(regs.de.DE);
 }
 
+// Subtract n from A
 CPU::OPCODE CPU::SUB_A_n(uint8_t n) {
-    return 0;
+    return SUB_A_n8(n);
 }
 
+// Call address 0x10
 CPU::OPCODE CPU::RST_10h() {
-    return 0;
+    return RST_VEC(0x10u);
 }
 
+// Return from subroutine if Carry is set
 CPU::OPCODE CPU::RET_C() {
-    return 0;
+    return RET_CC(C, true);
 }
 
+// return from subroutine and enable interrupts
+// Equivalent to calling EI then RET
+// 4 cycles
 CPU::OPCODE CPU::RETI() {
-    return 0;
+    EI();
+    return RET();
 }
 
+// Jump to address nn IF CARRY is set
 CPU::OPCODE CPU::JP_C_nn(uint16_t nn) {
-    return 0;
+    return JP_CC_n16(C, true, nn);
 }
 
+// CALL address nn if CARRY
+// executes an implicit JP nn
+// no flags affected
 CPU::OPCODE CPU::CALL_C_nn(uint16_t nn) {
-    return 0;
+    return CALL_CC_n16(C, true, nn);
 }
 
+// subtract n and the carry flag from A
 CPU::OPCODE CPU::SBC_A_n(uint8_t n) {
-    return 0;
+    return SBC_A_n8(n);
 }
 
+// Call address 0x18
 CPU::OPCODE CPU::RST_18h() {
-    return 0;
+    return RST_VEC(0x18u);
 }
 
+// Store value in register A into byte at address n16, provided it is between $FF00 and $FFFF.
+// no flags affected
+// 3 cycles
+// See https://rednex.github.io/rgbds/gbz80.7.html#LDH__n16_,A
 CPU::OPCODE CPU::LD_FF00_n_A(uint8_t n) {
-    return 0;
+    WRITE(0xFF00u + n, regs.af.A);
+    return 3;
 }
 
+// Pop from the stack onto HL
+// No flags are modified
 CPU::OPCODE CPU::POP_HL() {
-    return 0;
+    return POP_REG(regs.hl.HL);
 }
 
+// Load value in register A from byte pointed to by register r16.
+// no flags affected
+// 2 cycles
+// See https://rednex.github.io/rgbds/gbz80.7.html#LDH__C_,A
+// NOTE: C is the C register, NOT C flag
 CPU::OPCODE CPU::LD_FF00_C_A() {
-    return 0;
+    WRITE(0xFF00u + regs.bc.C, regs.af.A);
+    return 2;
 }
 
+// load the register HL onto the stack
 CPU::OPCODE CPU::PUSH_HL() {
-    return 0;
+    return PUSH_REG(regs.hl.HL);
 }
 
+// Bitwise AND between A and n
+// stores the result in A
 CPU::OPCODE CPU::AND_A_n(uint8_t n) {
-    return 0;
+    return AND_A_n8(n);
 }
 
+// Call address 0x20
 CPU::OPCODE CPU::RST_20h() {
-    return 0;
+    return RST_VEC(0x20u);
 }
 
+// Add the signed value i to SP
+// Z unset, N unset, H if overflow from bit 3, C if overflow from bit 7
+// 4 cycles
 CPU::OPCODE CPU::ADD_SP_i(int8_t i) {
-    return 0;
+    return ADD_SP_i8(i);
 }
 
+// Jump to address in HL
+// effectively, load PC with value in register HL
+// no flags affected
+// 1 cycles
 CPU::OPCODE CPU::JP_HL() {
-    return 0;
+    regs.pc = regs.hl.HL;
+    return 1;
 }
 
 CPU::OPCODE CPU::LD_nn_A(uint16_t nn) {

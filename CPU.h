@@ -134,7 +134,7 @@ private:
 private:
     int  cycles = 0;
 
-    uint8_t GetFlag(Z80_FLAGS f);
+    uint8_t GetFlag(Z80_FLAGS f) const;
     void SetFlag(Z80_FLAGS f, bool v);
 
 
@@ -205,14 +205,18 @@ private: //OPCODES
     int ADD_A_REG(uint8_t REG);
     int ADD_A_n8(uint8_t n);
     int ADD_A_Addr_REG16(uint16_t REG);
+    int ADD_SP_i8(int8_t i);
     int ADC_A_REG(uint8_t REG);
     int ADC_A_n8(uint8_t n);
     int ADC_A_Addr_REG16(uint16_t REG);
     int SUB_A_REG(uint8_t REG);
+    int SUB_A_n8(uint8_t n);
     int SUB_A_Addr_REG16(uint16_t REG);
     int SBC_A_REG(uint8_t REG);
+    int SBC_A_n8(uint8_t n);
     int SBC_A_Addr_REG16(uint16_t REG);
     int AND_A_REG(uint8_t REG);
+    int AND_A_n8(uint8_t n);
     int AND_A_Addr_REG16(uint16_t REG);
     int XOR_A_REG(uint8_t REG);
     int XOR_A_Addr_REG16(uint16_t REG);
