@@ -27,10 +27,10 @@
 ** DONE Finish up Resources Used Table
    CLOSED: [2020-02-23 Sun 00:28] DEADLINE: <2020-02-16 Sun>
 
-*** TODO Unprefixed [2/2] [100%]
+*** TODO Unprefixed [3/3] [100%]
     DEADLINE: <2020-03-07 Sat>
     - [X] Header definitions
-    - [ ] StepCPU mappings
+    - [X] StepCPU mappings
     - [X] Implementations
 
 *** TODO Prefixed [1/2] [50%]
