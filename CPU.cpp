@@ -2483,15 +2483,3 @@ CPU::OPCODE CPU::CP_A_n(uint8_t n) {
 CPU::OPCODE CPU::RST_38h() {
     return RST_VEC(0x38u);
 }
-
-CPU::OPCODE CPU::LD() {
-    return 0;
-}
-
-CPU::OPCODE CPU::ADD() {
-    return 0;
-}
-
-CPU::OPCODE CPU::ADC() {
-    return 0;
-}
