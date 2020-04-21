@@ -1,4 +1,5 @@
 //
+//
 // Created by Sammy Al Hashemi on 2020-02-02.
 //
 
@@ -72,9 +73,9 @@ uint16_t CPU::popFromStack() {
 
 void CPU::pushToStack(uint16_t ADDR) {
     // push MSB first
-    WRITE(regs.sp--, ADDR >> 8u);
+    WRITE(--regs.sp, ADDR >> 8u);
     // then push LSB
-    WRITE(regs.sp--, ADDR & 0x00FFu);
+    WRITE(--regs.sp, ADDR & 0x00FFu);
 }
 
 /**
@@ -2342,68 +2343,145 @@ CPU::OPCODE CPU::JP_HL() {
     return 1;
 }
 
+// store value in reg A into byte at address nn
+// no flags affected
 CPU::OPCODE CPU::LD_nn_A(uint16_t nn) {
-    return 0;
+    WRITE(nn, regs.af.A);
+    return 4;
 }
 
+// Bitwise XOR between the value in n and A
+// Same flags as XOR_A_REG
+// one more cycle than XOR_A_REG
 CPU::OPCODE CPU::XOR_A_n(uint8_t n) {
-    return 0;
+    // returns 2
+    return XOR_A_REG(n) + 1;
 }
 
+// call address 0x28
 CPU::OPCODE CPU::RST_28h() {
-    return 0;
+    return RST_VEC(0x28u);
 }
 
+// Load value $FF00 + n [$FF00, $FFFF] into A
+// 3 cycles
+// no flags affected
 CPU::OPCODE CPU::LD_A_FF00_n(uint8_t n) {
-    return 0;
+    regs.af.A = READ(0xFF00u + n);
+    return 3;
 }
 
+// Pop reg AF from the stack
+// 3 cycles
+// NOTE: slightly different from the standard CPU::popFromStack
+// Flags affected:
+// Z: Set from bit 7 of the popped low byte
+// N: Set from bit 6 of the popped low byte
+// H: Set from bit 5 of the popped low byte
+// C: Set from bit 4 of the popped low byte
 CPU::OPCODE CPU::POP_AF() {
-    return 0;
+    uint8_t hi = READ(++regs.sp);
+    uint8_t lo = READ(++regs.sp);
+    // NOTE: Recall last 4 bits of F are unused
+    regs.af.AF = (uint16_t)(((uint8_t)(hi << 8u) | lo) & 0xFFF0u);
+    SetFlag(Z, lo & 0x80u); // 0b10000000
+    SetFlag(N, lo & 0x40u); // 0b01000000
+    SetFlag(H, lo & 0x20u); // 0b00100000
+    SetFlag(C, lo & 0x10u); // 0b00100000
+    return 3;
 }
 
+// Load the value pointed to by [$FF00 + C reg] to A
+// 2 cycles
+// No flags affected
 CPU::OPCODE CPU::LD_A_FF00_C() {
-    return 0;
+    regs.af.A = READ(0xFF00u + regs.bc.C);
+    return 2;
 }
 
+// Disable interrupts by clearing the interrupt enable flag
+// 1 cycle
+// no flags affected
 CPU::OPCODE CPU::DI() {
-    return 0;
+    interrupts_enabled = false;
+    return 1;
 }
 
+// push reg AF onto the stack.
+// 4 cycles
+// Roughly equivalent to the following:
+// dec sp
+// ld [sp] a
+// dec sp
+// ls [sp] Z << 7 | N << 6 | H << 5 | C << 4
+// NOTE: Recall that AF=A3A2A1A0ZNHCXXXX
+// Where X=unused
 CPU::OPCODE CPU::PUSH_AF() {
-    return 0;
+    return PUSH_REG(regs.af.AF);
 }
 
+// Store teh Bitwise OR of A and n in A
+// Same flags as OR_A_REG
+// 2 cycles
 CPU::OPCODE CPU::OR_A_n(uint8_t n) {
-    return 0;
+    // returns 2
+    return OR_A_REG(n) + 1;
 }
 
+// Call address 0x30
 CPU::OPCODE CPU::RST_30h() {
-    return 0;
+    return RST_VEC(0x30u);
 }
 
+// Add the signed value i to SP and store the result in HL
+// 3 cycles
+// Z unset, N unset, H set if overflow from bit 3, C set if overflow from bit 7
 CPU::OPCODE CPU::LD_HL_SP_i(int8_t i) {
-    return 0;
+    auto n1 = regs.sp;
+    auto n2 = i;
+    regs.hl.HL = n1 + n2;
+    SetFlag(Z, false);
+    SetFlag(N, false);
+    SetFlag(H, HAS_HALF_CARRY_8(n1, n2));
+    SetFlag(C, HAS_CARRY_8(regs.hl.HL, n1, n2));
+    return 3;
 }
 
+// Load register HL into register SP
+// 2 cycles
+// No flags affected
 CPU::OPCODE CPU::LD_SP_HL() {
-    return 0;
+    regs.sp = regs.hl.HL;
+    return 2;
 }
 
+// Load the value pointed to by address nn into A
+// 3 cycles
+// No flags affected
 CPU::OPCODE CPU::LD_A_Addr_nn(uint16_t nn) {
-    return 0;
+    regs.af.A = READ(nn);
+    return 3;
 }
 
+// Enable interrupts by setting the enable interrupts flag
+// 1 cycle
+// No flags affected
 CPU::OPCODE CPU::EI() {
-    return 0;
+    interrupts_enabled = true;
+    return 1;
 }
 
+// Subtract the value n from A and set flags accordingly, but don't store the result
+// 2 cycles
+// Same flags as CP_A_REG
 CPU::OPCODE CPU::CP_A_n(uint8_t n) {
-    return 0;
+    // returns 2
+    return CP_A_REG(n) + 1;
 }
 
+// Call address 0x38
 CPU::OPCODE CPU::RST_38h() {
-    return 0;
+    return RST_VEC(0x38u);
 }
 
 CPU::OPCODE CPU::LD() {

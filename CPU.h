@@ -173,10 +173,6 @@ private: //OPCODES
     /*  E0+  */              OPCODE LD_FF00_n_A(uint8_t n); OPCODE POP_HL();              OPCODE LD_FF00_C_A();         /*      No Mapping      */ /*         No Mapping        */ OPCODE PUSH_HL();      OPCODE AND_A_n(uint8_t n);      OPCODE RST_20h();      OPCODE ADD_SP_i(int8_t i);         OPCODE JP_HL();     OPCODE LD_nn_A(uint16_t nn);      /*  No Mapping   */       /*       No Mapping         */ /*       No Mapping       */ OPCODE XOR_A_n(uint8_t n); OPCODE RST_28h();
     /*  F0+  */              OPCODE LD_A_FF00_n(uint8_t n); OPCODE POP_AF();              OPCODE LD_A_FF00_C();         OPCODE DI();               /*         No Mapping        */ OPCODE PUSH_AF();      OPCODE OR_A_n(uint8_t n);       OPCODE RST_30h();      OPCODE LD_HL_SP_i(int8_t i);       OPCODE LD_SP_HL();  OPCODE LD_A_Addr_nn(uint16_t nn); OPCODE EI();              /*       No Mapping         */ /*       No Mapping       */ OPCODE CP_A_n(uint8_t n);  OPCODE RST_38h();
 
-    /** Helper Functions for OPCODES **/
-    OPCODE LD();
-    OPCODE ADD();
-    OPCODE ADC();
     // Increment register (8-bit/1-byte)
     // Z affected, N unset, H affected
     void INCREMENT_8_BIT_REG(uint8_t&);
