@@ -1193,37 +1193,37 @@ int CPU::stepCPU() {
                     return RR_A();
                     /* Third Row*/
                 case 0x20:
-                    return p();
+                    return SLA_B();
                 case 0x21:
-                    return p();
+                    return SLA_C();
                 case 0x22:
-                    return p();
+                    return SLA_D();
                 case 0x23:
-                    return p();
+                    return SLA_E();
                 case 0x24:
-                    return p();
+                    return SLA_H();
                 case 0x25:
-                    return p();
+                    return SLA_L();
                 case 0x26:
-                    return p();
+                    return SLA_Addr_HL();
                 case 0x27:
-                    return p();
+                    return SLA_A();
                 case 0x28:
-                    return p();
+                    return SRA_B();
                 case 0x29:
-                    return p();
+                    return SRA_C();
                 case 0x2A:
-                    return p();
+                    return SRA_D();
                 case 0x2B:
-                    return p();
+                    return SRA_E();
                 case 0x2C:
-                    return p();
+                    return SRA_H();
                 case 0x2D:
-                    return p();
+                    return SRA_L();
                 case 0x2E:
-                    return p();
+                    return SRA_Addr_HL();
                 case 0x2F:
-                    return p();
+                    return SRA_A();
                     /* Fourth Row*/
                 case 0x30:
                     return p();
