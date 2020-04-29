@@ -1702,7 +1702,7 @@ CPU::OPCODE CPU::LD_B_B() {
 }
 
 // load C into B
-CPU::OPCODE CPU::LB_B_C() {
+CPU::OPCODE CPU::LD_B_C() {
     regs.bc.B = regs.bc.C;
     return 1;
 }
