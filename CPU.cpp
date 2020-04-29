@@ -740,399 +740,388 @@ int CPU::stepCPU() {
             return CCF();
             /* Fifth Row*/
         case 0x40:
-            return plac();
+            return LD_B_B();
         case 0x41:
-            return plac();
+            return LD_B_C();
         case 0x42:
-            return plac();
+            return LD_B_D();
         case 0x43:
-            return plac();
+            return LD_B_E();
         case 0x44:
-            return plac();
+            return LD_B_H();
         case 0x45:
-            return plac();
+            return LD_B_L();
         case 0x46:
-            return plac();
+            return LD_B_Addr_HL();
         case 0x47:
-            return plac();
+            return LD_B_A();
         case 0x48:
-            return plac();
+            return LD_C_B();
         case 0x49:
-            return plac();
+            return LD_C_C();
         case 0x4A:
-            return plac();
+            return LD_C_D();
         case 0x4B:
-            return plac();
+            return LD_C_E();
         case 0x4C:
-            return plac();
+            return LD_C_H();
         case 0x4D:
-            return plac();
+            return LD_C_L();
         case 0x4E:
-            return plac();
+            return LD_C_Addr_HL();
         case 0x4F:
-            return plac();
+            return LD_C_A();
             /* Sixth Row*/
         case 0x50:
-            return plac();
+            return LD_D_B();
         case 0x51:
-            return plac();
+            return LD_D_C();
         case 0x52:
-            return plac();
+            return LD_D_D();
         case 0x53:
-            return plac();
+            return LD_D_E();
         case 0x54:
-            return plac();
+            return LD_D_H();
         case 0x55:
-            return plac();
+            return LD_D_L();
         case 0x56:
-            return plac();
+            return LD_D_Addr_HL();
         case 0x57:
-            return plac();
+            return LD_D_A();
         case 0x58:
-            return plac();
+            return LD_E_B();
         case 0x59:
-            return plac();
+            return LD_E_C();
         case 0x5A:
-            return plac();
+            return LD_E_D();
         case 0x5B:
-            return plac();
+            return LD_E_E();
         case 0x5C:
-            return plac();
+            return LD_E_H();
         case 0x5D:
-            return plac();
+            return LD_E_L();
         case 0x5E:
-            return plac();
+            return LD_E_Addr_HL();
         case 0x5F:
-            return plac();
+            return LD_E_A();
             /* Seventh Row*/
         case 0x60:
-            return plac();
+            return LD_H_B();
         case 0x61:
-            return plac();
+            return LD_H_C();
         case 0x62:
-            return plac();
+            return LD_H_D();
         case 0x63:
-            return plac();
+            return LD_H_C();
         case 0x64:
-            return plac();
+            return LD_H_H();
         case 0x65:
-            return plac();
+            return LD_H_L();
         case 0x66:
-            return plac();
+            return LD_H_Addr_HL();
         case 0x67:
-            return plac();
+            return LD_H_A();
         case 0x68:
-            return plac();
+            return LD_L_B();
         case 0x69:
-            return plac();
+            return LD_L_C();
         case 0x6A:
-            return plac();
+            return LD_L_D();
         case 0x6B:
-            return plac();
+            return LD_L_E();
         case 0x6C:
-            return plac();
+            return LD_L_H();
         case 0x6D:
-            return plac();
+            return LD_L_L();
         case 0x6E:
-            return plac();
+            return LD_L_Addr_HL();
         case 0x6F:
-            return plac();
+            return LD_L_A();
             /* Eigth Row*/
         case 0x70:
-            return plac();
+            return LD_Addr_HL_B();
         case 0x71:
-            return plac();
+            return LD_Addr_HL_C();
         case 0x72:
-            return plac();
+            return LD_Addr_HL_D();
         case 0x73:
-            return plac();
+            return LD_Addr_HL_E();
         case 0x74:
-            return plac();
+            return LD_Addr_HL_H();
         case 0x75:
-            return plac();
+            return LD_Addr_HL_L();
         case 0x76:
-            return plac();
+            return HALT();
         case 0x77:
-            return plac();
+            return LD_Addr_HL_A();
         case 0x78:
-            return plac();
+            return LD_A_B();
         case 0x79:
-            return plac();
+            return LD_A_C();
         case 0x7A:
-            return plac();
+            return LD_A_D();
         case 0x7B:
-            return plac();
+            return LD_A_E();
         case 0x7C:
-            return plac();
+            return LD_A_H();
         case 0x7D:
-            return plac();
+            return LD_A_L();
         case 0x7E:
-            return plac();
+            return LD_A_Addr_HL();
         case 0x7F:
-            return plac();
+            return LD_A_A();
             /* Ninth Row*/
         case 0x80:
-            return plac();
+            return ADD_A_B();
         case 0x81:
-            return plac();
+            return ADD_A_C();
         case 0x82:
-            return plac();
+            return ADD_A_D();
         case 0x83:
-            return plac();
+            return ADD_A_E();
         case 0x84:
-            return plac();
+            return ADD_A_H();
         case 0x85:
-            return plac();
+            return ADD_A_L();
         case 0x86:
-            return plac();
+            return ADD_A_Addr_HL();
         case 0x87:
-            return plac();
+            return ADD_A_A();
         case 0x88:
-            return plac();
+            return ADC_A_B();
         case 0x89:
-            return plac();
+            return ADC_A_C();
         case 0x8A:
-            return plac();
+            return ADC_A_D();
         case 0x8B:
-            return plac();
+            return ADC_A_E();
         case 0x8C:
-            return plac();
+            return ADC_A_H();
         case 0x8D:
-            return plac();
+            return ADC_A_L();
         case 0x8E:
-            return plac();
+            return ADC_A_Addr_HL();
         case 0x8F:
-            return plac();
+            return ADC_A_A();
             /* Tenth Row*/
         case 0x90:
-            return plac();
+            return SUB_A_B();
         case 0x91:
-            return plac();
+            return SUB_A_C();
         case 0x92:
-            return plac();
+            return SUB_A_D();
         case 0x93:
-            return plac();
+            return SUB_A_E();
         case 0x94:
-            return plac();
+            return SUB_A_H();
         case 0x95:
-            return plac();
+            return SUB_A_L();
         case 0x96:
-            return plac();
+            return SUB_A_Addr_HL();
         case 0x97:
-            return plac();
+            return SUB_A_A();
         case 0x98:
-            return plac();
+            return SBC_A_B();
         case 0x99:
-            return plac();
+            return SBC_A_C();
         case 0x9A:
-            return plac();
+            return SBC_A_D();
         case 0x9B:
-            return plac();
+            return SBC_A_E();
         case 0x9C:
-            return plac();
+            return SBC_A_H();
         case 0x9D:
-            return plac();
+            return SBC_A_L();
         case 0x9E:
-            return plac();
+            return SBC_A_Addr_HL();
         case 0x9F:
-            return plac();
+            return SBC_A_A();
             /* Eleventh Row*/
         case 0xA0:
-            return plac();
+            return AND_A_B();
         case 0xA1:
-            return plac();
+            return AND_A_C();
         case 0xA2:
-            return plac();
+            return AND_A_D();
         case 0xA3:
-            return plac();
+            return AND_A_E();
         case 0xA4:
-            return plac();
+            return AND_A_H();
         case 0xA5:
-            return plac();
+            return AND_A_L();
         case 0xA6:
-            return plac();
+            return AND_A_Addr_HL();
         case 0xA7:
-            return plac();
+            return AND_A_A();
         case 0xA8:
-            return plac();
+            return XOR_A_B();
         case 0xA9:
-            return plac();
+            return XOR_A_C();
         case 0xAA:
-            return plac();
+            return XOR_A_D();
         case 0xAB:
-            return plac();
+            return XOR_A_E();
         case 0xAC:
-            return plac();
+            return XOR_A_H();
         case 0xAD:
-            return plac();
+            return XOR_A_L();
         case 0xAE:
-            return plac();
+            return XOR_A_Addr_HL();
         case 0xAF:
-            return plac();
+            return XOR_A_A();
             /* Twelfth Row*/
         case 0xB0:
-            return plac();
+            return OR_A_B();
         case 0xB1:
-            return plac();
+            return OR_A_C();
         case 0xB2:
-            return plac();
+            return OR_A_D();
         case 0xB3:
-            return plac();
+            return OR_A_E();
         case 0xB4:
-            return plac();
+            return OR_A_H();
         case 0xB5:
-            return plac();
+            return OR_A_L();
         case 0xB6:
-            return plac();
+            return OR_A_Addr_HL();
         case 0xB7:
-            return plac();
+            return OR_A_A();
         case 0xB8:
-            return plac();
+            return CP_A_B();
         case 0xB9:
-            return plac();
+            return CP_A_C();
         case 0xBA:
-            return plac();
+            return CP_A_D();
         case 0xBB:
-            return plac();
+            return CP_A_E();
         case 0xBC:
-            return plac();
+            return CP_A_H();
         case 0xBD:
-            return plac();
+            return CP_A_L();
         case 0xBE:
-            return plac();
+            return CP_A_Addr_HL();
         case 0xBF:
-            return plac();
+            return CP_A_A();
             /* Thirteenth Row*/
         case 0xC0:
-            return plac();
+            return RET_NZ();
         case 0xC1:
-            return plac();
+            return POP_BC();
         case 0xC2:
-            return plac();
+            return JP_NZ_nn(ReadNn());
         case 0xC3:
-            return plac();
+            return JP_nn(ReadNn());
         case 0xC4:
-            return plac();
+            return CALL_NZ_nn(ReadNn());
         case 0xC5:
-            return plac();
+            return PUSH_BC();
         case 0xC6:
-            return plac();
+            return ADD_A_n(ReadN());
         case 0xC7:
-            return plac();
+            return RST_00h();
         case 0xC8:
-            return plac();
+            return RET_Z();
         case 0xC9:
-            return plac();
+            return RET();
         case 0xCA:
-            return plac(); 
+            return JP_Z_nn(ReadNn()); 
         //0xCB taken care of underneath in prefix section
         case 0xCC:
-            return plac();
+            return CALL_Z_nn(ReadNn());
         case 0xCD:
-            return plac();
+            return CALL_nn(ReadNn());
         case 0xCE:
-            return plac();
+            return ADC_A_n(ReadN());
         case 0xCF:
-            return plac();
+            return RST_08h();
             /* Fourteenth Row*/
         case 0xD0:
-            return plac();
+            return RET_NC();
         case 0xD1:
-            return plac();
+            return POP_DE();
         case 0xD2:
-            return plac();
-        case 0xD3:
-            return plac();
+            return JP_NC_nn(ReadNn());
+        // No 0xD3 mapping
         case 0xD4:
-            return plac();
+            return CALL_NC_nn(ReadNn());
         case 0xD5:
-            return plac();
+            return PUSH_DE();
         case 0xD6:
-            return plac();
+            return SUB_A_n(ReadN());
         case 0xD7:
-            return plac();
+            return RST_10h();
         case 0xD8:
-            return plac();
+            return RET_C();
         case 0xD9:
-            return plac();
+            return RETI();
         case 0xDA:
-            return plac();
-        case 0xDB:
-            return plac();
+            return JP_C_nn(ReadNn());
+            // No 0xDB mapping
         case 0xDC:
-            return plac();
-        case 0xDD:
-            return plac();
+            return CALL_C_nn(ReadNn());
+            // No 0xDB mapping
         case 0xDE:
-            return plac();
+            return SBC_A_n(ReadN());
         case 0xDF:
-            return plac();
+            return RST_18h();
             /* Fifteenth Row*/
         case 0xE0:
-            return plac();
+            return LD_FF00_n_A(ReadN());
         case 0xE1:
-            return plac();
+            return POP_HL();
         case 0xE2:
-            return plac();
-        case 0xE3:
-            return plac();
-        case 0xE4:
-            return plac();
+            return LD_FF00_C_A();
+        // No 0xD3 mapping
+        // No 0xD4 mapping
         case 0xE5:
-            return plac();
+            return PUSH_HL();
         case 0xE6:
-            return plac();
+            return AND_A_n(ReadN());
         case 0xE7:
-            return plac();
+            return RST_20h();
         case 0xE8:
-            return plac();
+            return ADD_SP_i(ReadI());
         case 0xE9:
-            return plac();
+            return JP_HL();
         case 0xEA:
-            return plac();
-        case 0xEB:
-            return plac();
-        case 0xEC:
-            return plac();
-        case 0xED:
-            return plac();
+            return LD_nn_A(ReadNn());
+       // No 0xDB mapping
+       // No 0xDC mapping
+       // No 0xDD mapping
         case 0xEE:
-            return plac();
+            return XOR_A_n(ReadN());
         case 0xEF:
-            return plac();
+            return RST_28h();
             /* Sixteenth Row*/
         case 0xF0:
-            return plac();
+            return LD_A_FF00_n(ReadN());
         case 0xF1:
-            return plac();
+            return POP_AF();
         case 0xF2:
-            return plac();
+            return LD_A_FF00_C(ReadN());
         case 0xF3:
-            return plac();
-        case 0xF4:
-            return plac();
+            return DI();
+        // No 0xF4 mapping
         case 0xF5:
-            return plac();
+            return PUSH_AF();
         case 0xF6:
-            return plac();
+            return OR_A_n(ReadN());
         case 0xF7:
-            return plac();
+            return RST_30h();
         case 0xF8:
-            return plac();
+            return LD_HL_SP_i(ReadI());
         case 0xF9:
-            return plac();
+            return LD_SP_HL();
         case 0xFA:
-            return plac();
+            return LD_A_Addr_nn(ReadNn());
         case 0xFB:
-            return plac();
-        case 0xFC:
-            return plac();
-        case 0xFD:
-            return plac();
+            return EI();
+        // No 0xFC mapping
+        // No 0xFD mapping
         case 0xFE:
-            return plac();
+            return CP_A_n(ReadN());
         case 0xFF:
-            return plac();
+            return RST_38h();
 
 
         /* Second OPCODE Table */
