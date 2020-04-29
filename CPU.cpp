@@ -1622,37 +1622,37 @@ int CPU::stepCPU() {
                     return SET_5_A();
                     /* Sixteenth Row*/
                 case 0xF0:
-                    return SET_6_();
+                    return SET_6_B();
                 case 0xF1:
-                    return SET_6_();
+                    return SET_6_C();
                 case 0xF2:
-                    return SET_6_();
+                    return SET_6_D();
                 case 0xF3:
-                    return SET_6_();
+                    return SET_6_E();
                 case 0xF4:
-                    return SET_6_();
+                    return SET_6_H();
                 case 0xF5:
-                    return SET_6_();
+                    return SET_6_L();
                 case 0xF6:
-                    return SET_6_();
+                    return SET_6_Addr_HL();
                 case 0xF7:
-                    return SET_6_();
+                    return SET_6_A();
                 case 0xF8:
-                    return SET_7_();
+                    return SET_7_B();
                 case 0xF9:
-                    return SET_7_();
+                    return SET_7_C();
                 case 0xFA:
-                    return SET_7_();
+                    return SET_7_D();
                 case 0xFB:
-                    return SET_7_();
+                    return SET_7_E();
                 case 0xFC:
-                    return SET_7_();
+                    return SET_7_H();
                 case 0xFD:
-                    return SET_7_();
+                    return SET_7_L();
                 case 0xFE:
-                    return SET_7_();
+                    return SET_7_Addr_HL();
                 case 0xFF:
-                    return SET_7_();
+                    return SET_7_A();
                 default:
                     printf("Unsupported OPCODE 0x%02x at 0x%04x", READ(regs.pc), regs.pc);
                     std::exit(EXIT_FAILURE);
