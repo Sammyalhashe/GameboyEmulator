@@ -1523,136 +1523,136 @@ int CPU::stepCPU() {
                     return RES_7_A();
                     /* Thirteenth Row*/
                 case 0xC0:
-                    return p();
+                    return SET_0_();
                 case 0xC1:
-                    return p();
+                    return SET_0_();
                 case 0xC2:
-                    return p();
+                    return SET_0_();
                 case 0xC3:
-                    return p();
+                    return SET_0_();
                 case 0xC4:
-                    return p();
+                    return SET_0_();
                 case 0xC5:
-                    return p();
+                    return SET_0_();
                 case 0xC6:
-                    return p();
+                    return SET_0_();
                 case 0xC7:
-                    return p();
+                    return SET_0_();
                 case 0xC8:
-                    return p();
+                    return SET_1_();
                 case 0xC9:
-                    return p();
+                    return SET_1_();
                 case 0xCA:
-                    return p();
+                    return SET_1_();
                 case 0xCB:
-                    return p();
+                    return SET_1_();
                 case 0xCC:
-                    return p();
+                    return SET_1_();
                 case 0xCD:
-                    return p();
+                    return SET_1_();
                 case 0xCE:
-                    return p();
+                    return SET_1_();
                 case 0xCF:
-                    return p();
+                    return SET_1_();
                     /* Fourteenth Row*/
                 case 0xD0:
-                    return p();
+                    return SET_2_();
                 case 0xD1:
-                    return p();
+                    return SET_2_();
                 case 0xD2:
-                    return p();
+                    return SET_2_();
                 case 0xD3:
-                    return p();
+                    return SET_2_();
                 case 0xD4:
-                    return p();
+                    return SET_2_();
                 case 0xD5:
-                    return p();
+                    return SET_2_();
                 case 0xD6:
-                    return p();
+                    return SET_2_();
                 case 0xD7:
-                    return p();
+                    return SET_2_();
                 case 0xD8:
-                    return p();
+                    return SET_3_();
                 case 0xD9:
-                    return p();
+                    return SET_3_();
                 case 0xDA:
-                    return p();
+                    return SET_3_();
                 case 0xDB:
-                    return p();
+                    return SET_3_();
                 case 0xDC:
-                    return p();
+                    return SET_3_();
                 case 0xDD:
-                    return p();
+                    return SET_3_();
                 case 0xDE:
-                    return p();
+                    return SET_3_();
                 case 0xDF:
-                    return p();
+                    return SET_3_();
                     /* Fifteenth Row*/
                 case 0xE0:
-                    return p();
+                    return SET_4_();
                 case 0xE1:
-                    return p();
+                    return SET_4_();
                 case 0xE2:
-                    return p();
+                    return SET_4_();
                 case 0xE3:
-                    return p();
+                    return SET_4_();
                 case 0xE4:
-                    return p();
+                    return SET_4_();
                 case 0xE5:
-                    return p();
+                    return SET_4_();
                 case 0xE6:
-                    return p();
+                    return SET_4_();
                 case 0xE7:
-                    return p();
+                    return SET_4_();
                 case 0xE8:
-                    return p();
+                    return SET_5_();
                 case 0xE9:
-                    return p();
+                    return SET_5_();
                 case 0xEA:
-                    return p();
+                    return SET_5_();
                 case 0xEB:
-                    return p();
+                    return SET_5_();
                 case 0xEC:
-                    return p();
+                    return SET_5_();
                 case 0xED:
-                    return p();
+                    return SET_5_();
                 case 0xEE:
-                    return p();
+                    return SET_5_();
                 case 0xEF:
-                    return p();
+                    return SET_5_();
                     /* Sixteenth Row*/
                 case 0xF0:
-                    return p();
+                    return SET_6_();
                 case 0xF1:
-                    return p();
+                    return SET_6_();
                 case 0xF2:
-                    return p();
+                    return SET_6_();
                 case 0xF3:
-                    return p();
+                    return SET_6_();
                 case 0xF4:
-                    return p();
+                    return SET_6_();
                 case 0xF5:
-                    return p();
+                    return SET_6_();
                 case 0xF6:
-                    return p();
+                    return SET_6_();
                 case 0xF7:
-                    return p();
+                    return SET_6_();
                 case 0xF8:
-                    return p();
+                    return SET_7_();
                 case 0xF9:
-                    return p();
+                    return SET_7_();
                 case 0xFA:
-                    return p();
+                    return SET_7_();
                 case 0xFB:
-                    return p();
+                    return SET_7_();
                 case 0xFC:
-                    return p();
+                    return SET_7_();
                 case 0xFD:
-                    return p();
+                    return SET_7_();
                 case 0xFE:
-                    return p();
+                    return SET_7_();
                 case 0xFF:
-                    return p();
+                    return SET_7_();
                 default:
                     printf("Unsupported OPCODE 0x%02x at 0x%04x", READ(regs.pc), regs.pc);
                     std::exit(EXIT_FAILURE);
