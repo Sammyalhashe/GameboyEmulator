@@ -1259,37 +1259,37 @@ int CPU::stepCPU() {
                     return SRL_A();
                     /* Fifth Row*/
                 case 0x40:
-                    return p();
+                    return BIT_0_B();
                 case 0x41:
-                    return p();
+                    return BIT_0_C();
                 case 0x42:
-                    return p();
+                    return BIT_0_D();
                 case 0x43:
-                    return p();
+                    return BIT_0_E();
                 case 0x44:
-                    return p();
+                    return BIT_0_H();
                 case 0x45:
-                    return p();
+                    return BIT_0_L();
                 case 0x46:
-                    return p();
+                    return BIT_0_Addr_HL();
                 case 0x47:
-                    return p();
+                    return BIT_0_A();
                 case 0x48:
-                    return p();
+                    return BIT_1_B();
                 case 0x49:
-                    return p();
+                    return BIT_1_C();
                 case 0x4A:
-                    return p();
+                    return BIT_1_D();
                 case 0x4B:
-                    return p();
+                    return BIT_1_E();
                 case 0x4C:
-                    return p();
+                    return BIT_1_H();
                 case 0x4D:
-                    return p();
+                    return BIT_1_L();
                 case 0x4E:
-                    return p();
+                    return BIT_1_Addr_HL();
                 case 0x4F:
-                    return p();
+                    return BIT_1_A();
                     /* Sixth Row*/
                 case 0x50:
                     return p();
