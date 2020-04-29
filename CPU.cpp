@@ -1589,37 +1589,37 @@ int CPU::stepCPU() {
                     return SET_3_A();
                     /* Fifteenth Row*/
                 case 0xE0:
-                    return SET_4_();
+                    return SET_4_B();
                 case 0xE1:
-                    return SET_4_();
+                    return SET_4_C();
                 case 0xE2:
-                    return SET_4_();
+                    return SET_4_D();
                 case 0xE3:
-                    return SET_4_();
+                    return SET_4_E();
                 case 0xE4:
-                    return SET_4_();
+                    return SET_4_H();
                 case 0xE5:
-                    return SET_4_();
+                    return SET_4_L();
                 case 0xE6:
-                    return SET_4_();
+                    return SET_4_Addr_HL();
                 case 0xE7:
-                    return SET_4_();
+                    return SET_4_A();
                 case 0xE8:
-                    return SET_5_();
+                    return SET_5_B();
                 case 0xE9:
-                    return SET_5_();
+                    return SET_5_C();
                 case 0xEA:
-                    return SET_5_();
+                    return SET_5_D();
                 case 0xEB:
-                    return SET_5_();
+                    return SET_5_E();
                 case 0xEC:
-                    return SET_5_();
+                    return SET_5_H();
                 case 0xED:
-                    return SET_5_();
+                    return SET_5_L();
                 case 0xEE:
-                    return SET_5_();
+                    return SET_5_Addr_HL();
                 case 0xEF:
-                    return SET_5_();
+                    return SET_5_A();
                     /* Sixteenth Row*/
                 case 0xF0:
                     return SET_6_();
