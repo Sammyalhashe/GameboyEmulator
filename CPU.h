@@ -41,15 +41,6 @@ public:
         U0 = (0u << 0u),   // Unused 0 -> should stay at 0
     };
     bool HALT_FLAG = false;
-    //          Array of registers                              //
-    //          16 registers in the ARM CPU                     //
-    //          Several important registers:                    //
-    //          14: subroutine Link Register (LR)               //
-    //          15: Program Counter (PC)                        //
-    //          In ARM state ([1:0] are 0, [31:2] contain PC)   //
-    //          In THUMB state [0] is 0, [31:1] contain PC)     //
-    //          r14 recieves a copy of r15(PC) when a           //
-    //          Branch with Link (BL) instruction is executed   //
     typedef struct {
         // GB registers (8 bits but an be combined for 16-bit operations)
         // AF, BC, DE, HL
