@@ -1127,37 +1127,37 @@ int CPU::stepCPU() {
             switch (READ(regs.pc++)) {
                     /* First Row*/
                 case 0x00:
-                    return p();
+                    return RLC_B();
                 case 0x01:
-                    return p();
+                    return RLC_C();
                 case 0x02:
-                    return p();
+                    return RLC_D();
                 case 0x03:
-                    return p();
+                    return RLC_E();
                 case 0x04:
-                    return p();
+                    return RLC_H();
                 case 0x05:
-                    return p();
+                    return RLC_L();
                 case 0x06:
-                    return p();
+                    return RLC_Addr_HL();
                 case 0x07:
-                    return p();
+                    return RLC_A();
                 case 0x08:
-                    return p();
+                    return RRC_B();
                 case 0x09:
-                    return p();
+                    return RRC_C();
                 case 0x0A:
-                    return p();
+                    return RRC_D();
                 case 0x0B:
-                    return p();
+                    return RRC_E();
                 case 0x0C:
-                    return p();
+                    return RRC_H();
                 case 0x0D:
-                    return p();
+                    return RRC_L();
                 case 0x0E:
-                    return p();
+                    return RRC_Addr_HL();
                 case 0x0F:
-                    return p();
+                    return RRC_A();
                     /* Second Row*/
                 case 0x10:
                     return p();
