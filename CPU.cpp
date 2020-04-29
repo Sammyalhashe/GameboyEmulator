@@ -1358,37 +1358,37 @@ int CPU::stepCPU() {
                     return BIT_5_A();
                     /* Eighth Row*/
                 case 0x70:
-                    return p();
+                    return BIT_6_B();
                 case 0x71:
-                    return p();
+                    return BIT_6_C();
                 case 0x72:
-                    return p();
+                    return BIT_6_D();
                 case 0x73:
-                    return p();
+                    return BIT_6_E();
                 case 0x74:
-                    return p();
+                    return BIT_6_H();
                 case 0x75:
-                    return p();
+                    return BIT_6_L();
                 case 0x76:
-                    return p();
+                    return BIT_6_Addr_HL();
                 case 0x77:
-                    return p();
+                    return BIT_6_A();
                 case 0x78:
-                    return p();
+                    return BIT_7_B();
                 case 0x79:
-                    return p();
+                    return BIT_7_C();
                 case 0x7A:
-                    return p();
+                    return BIT_7_D();
                 case 0x7B:
-                    return p();
+                    return BIT_7_E();
                 case 0x7C:
-                    return p();
+                    return BIT_7_H();
                 case 0x7D:
-                    return p();
+                    return BIT_7_L();
                 case 0x7E:
-                    return p();
+                    return BIT_7_Addr_HL();
                 case 0x7F:
-                    return p();
+                    return BIT_7_A();
                     /* Ninth Row*/
                 case 0x80:
                     return p();
