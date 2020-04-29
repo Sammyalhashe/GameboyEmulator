@@ -1457,37 +1457,37 @@ int CPU::stepCPU() {
                     return RES_3_A();
                     /* Eleventh Row*/
                 case 0xA0:
-                    return p();
+                    return RES_4_B();
                 case 0xA1:
-                    return p();
+                    return RES_4_C();
                 case 0xA2:
-                    return p();
+                    return RES_4_D();
                 case 0xA3:
-                    return p();
+                    return RES_4_E();
                 case 0xA4:
-                    return p();
+                    return RES_4_H();
                 case 0xA5:
-                    return p();
+                    return RES_4_L();
                 case 0xA6:
-                    return p();
+                    return RES_4_Addr_HL();
                 case 0xA7:
-                    return p();
+                    return RES_4_A();
                 case 0xA8:
-                    return p();
+                    return RES_5_B();
                 case 0xA9:
-                    return p();
+                    return RES_5_C();
                 case 0xAA:
-                    return p();
+                    return RES_5_D();
                 case 0xAB:
-                    return p();
+                    return RES_5_E();
                 case 0xAC:
-                    return p();
+                    return RES_5_H();
                 case 0xAD:
-                    return p();
+                    return RES_5_L();
                 case 0xAE:
-                    return p();
+                    return RES_5_Addr_HL();
                 case 0xAF:
-                    return p();
+                    return RES_5_A();
                     /* Twelfth Row*/
                 case 0xB0:
                     return p();
