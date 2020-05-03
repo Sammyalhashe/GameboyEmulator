@@ -1098,7 +1098,7 @@ int CPU::stepCPU() {
         case 0xF1:
             return POP_AF();
         case 0xF2:
-            return LD_A_FF00_C(ReadN());
+            return LD_A_FF00_C();
         case 0xF3:
             return DI();
         // No 0xF4 mapping
