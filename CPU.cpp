@@ -92,7 +92,7 @@ int CPU::POP_REG(uint16_t& REG) {
     regs.sp++;
     uint8_t high = READ(regs.sp);
     regs.sp++;
-    REG = (uint8_t)(high << 8u) | low;
+    REG = ((uint8_t)(high << 8u)) | low;
     return 3;
 }
 
@@ -1098,7 +1098,7 @@ int CPU::stepCPU() {
         case 0xF1:
             return POP_AF();
         case 0xF2:
-            return LD_A_FF00_C();
+            return LD_A_FF00_C(ReadN());
         case 0xF3:
             return DI();
         // No 0xF4 mapping
@@ -3395,3 +3395,5 @@ CPU::OPCODE CPU::CP_A_n(uint8_t n) {
 CPU::OPCODE CPU::RST_38h() {
     return RST_VEC(0x38u);
 }
+
+/*--------------------------------------------------- Prefixed Table Below ------------------------------------------------------------*/
