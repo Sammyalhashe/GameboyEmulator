@@ -235,6 +235,8 @@ private: //OPCODES
     int JP_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn);
     int CALL_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn);
     int RET_CC(Z80_FLAGS FLAG, bool CC);
+    int BIT_u3_REG8(int u3, uint8_t REG);
+    int BIT_u3_Addr_HL(int u3);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();

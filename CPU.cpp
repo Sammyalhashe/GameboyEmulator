@@ -20,6 +20,14 @@
 // masks
 #define BYTE_MSB_MASK 0b10000000u
 #define BYTE_LSB_MASK 0b00000001u
+#define BIT_0         0b00000001u
+#define BIT_1         0b00000010u
+#define BIT_2         0b00000100u
+#define BIT_3         0b00001000u
+#define BIT_4         0b00010000u
+#define BIT_5         0b00100000u
+#define BIT_6         0b01000000u
+#define BIT_7         0b10000000u
 
 
 // special helper macros
@@ -416,7 +424,7 @@ int CPU::SUB_A_Addr_REG16(uint16_t REG) {
 }
 
 /**
- * Substract the value REG points to from A, but DO NOT store the result.
+ * Subtract the value REG points to from A, but DO NOT store the result.
  * This is useful for comparisons.
  * Has the same flags as SUB:
  * Z affected, N set, H if borrow from bit 4, C if borrow (REG > A)
@@ -601,6 +609,66 @@ int CPU::LDD_reg_Addr_REG(uint8_t& reg, uint16_t& REG, bool inc) {
     reg = READ(REG--);
   }
   return 2;
+}
+
+/*
+ * Test bit u3 in REG, set the zero flag if bit not set.
+ * @param u3: bit position to test (ie. bit 1)
+ * @param REG: register to test
+ * 2 cycles
+ * Z if selected bit it zero, N unset, H set
+ */
+int CPU::BIT_u3_REG8(int u3, uint8_t REG) {
+
+    bool check;
+    switch (u3) {
+        case 0:
+           check = REG & BIT_0;
+           break;
+        case 1:
+            check = REG & BIT_1;
+            break;
+        case 2:
+            check = REG & BIT_2;
+            break;
+        case 3:
+            check = REG & BIT_3;
+            break;
+        case 4:
+            check = REG & BIT_4;
+            break;
+        case 5:
+            check = REG & BIT_5;
+            break;
+        case 6:
+            check = REG & BIT_6;
+            break;
+        case 7:
+            check = REG & BIT_7;
+            break;
+        default:
+            printf("BIT_u3_REG9 ::  Bit %d not allowed", u3);
+            std::exit(EXIT_FAILURE);
+
+    }
+    // N is unset
+    SetFlag(N, false);
+    // H is set
+    SetFlag(H, true);
+    // Z is set if the result is zero
+    SetFlag(Z, !check);
+    return 2;
+}
+
+/*
+ * Does the same thing as CPU::BIT_u3_REG8 but instead takes the value REG HL points to
+ * and then performs the check.
+ * Same flags as CPU::BIT_u3_REG8
+ * 3 cycles (which is a +1 from the other function)
+ */
+int CPU::BIT_u3_Addr_HL(int u3) {
+    // returns 3
+    return BIT_u3_REG8(u3, READ(regs.hl.HL)) + 1;
 }
 
 
@@ -3617,138 +3685,402 @@ CPU::OPCODE CPU::SRL_L(){ }
 CPU::OPCODE CPU::SRL_Addr_HL(){ }
                 
 CPU::OPCODE CPU::SRL_A(){ }
-    /* Fifth Row*/
-                
-CPU::OPCODE CPU::BIT_0_B(){ }
-                
-CPU::OPCODE CPU::BIT_0_C(){ }
-                
-CPU::OPCODE CPU::BIT_0_D(){ }
-                
-CPU::OPCODE CPU::BIT_0_E(){ }
-                
-CPU::OPCODE CPU::BIT_0_H(){ }
-                
-CPU::OPCODE CPU::BIT_0_L(){ }
-                
-CPU::OPCODE CPU::BIT_0_Addr_HL(){ }
-                
-CPU::OPCODE CPU::BIT_0_A(){ }
-                
-CPU::OPCODE CPU::BIT_1_B(){ }
-                
-CPU::OPCODE CPU::BIT_1_C(){ }
-                
-CPU::OPCODE CPU::BIT_1_D(){ }
-                
-CPU::OPCODE CPU::BIT_1_E(){ }
-                
-CPU::OPCODE CPU::BIT_1_H(){ }
-                
-CPU::OPCODE CPU::BIT_1_L(){ }
-                
-CPU::OPCODE CPU::BIT_1_Addr_HL(){ }
-                
-CPU::OPCODE CPU::BIT_1_A(){ }
-    /* Sixth Row*/
-                
-CPU::OPCODE CPU::BIT_2_B(){ }
-                
-CPU::OPCODE CPU::BIT_2_C(){ }
-                
-CPU::OPCODE CPU::BIT_2_D(){ }
-                
-CPU::OPCODE CPU::BIT_2_E(){ }
-                
-CPU::OPCODE CPU::BIT_2_H(){ }
-                
-CPU::OPCODE CPU::BIT_2_L(){ }
-                
-CPU::OPCODE CPU::BIT_2_Addr_HL(){ }
-                
-CPU::OPCODE CPU::BIT_2_A(){ }
-                
-CPU::OPCODE CPU::BIT_3_B(){ }
-                
-CPU::OPCODE CPU::BIT_3_C(){ }
-                
-CPU::OPCODE CPU::BIT_3_D(){ }
-                
-CPU::OPCODE CPU::BIT_3_E(){ }
-                
-CPU::OPCODE CPU::BIT_3_H(){ }
-                
-CPU::OPCODE CPU::BIT_3_L(){ }
-                
-CPU::OPCODE CPU::BIT_3_Addr_HL(){ }
-                
-CPU::OPCODE CPU::BIT_3_A(){ }
-    /* Seventh Row*/
-                
-CPU::OPCODE CPU::BIT_4_B(){ }
-                
-CPU::OPCODE CPU::BIT_4_C(){ }
-                
-CPU::OPCODE CPU::BIT_4_D(){ }
-                
-CPU::OPCODE CPU::BIT_4_E(){ }
-                
-CPU::OPCODE CPU::BIT_4_H(){ }
-                
-CPU::OPCODE CPU::BIT_4_L(){ }
-                
-CPU::OPCODE CPU::BIT_4_Addr_HL(){ }
-                
-CPU::OPCODE CPU::BIT_4_A(){ }
-                
-CPU::OPCODE CPU::BIT_5_B(){ }
-                
-CPU::OPCODE CPU::BIT_5_C(){ }
-                
-CPU::OPCODE CPU::BIT_5_D(){ }
-                
-CPU::OPCODE CPU::BIT_5_E(){ }
-                
-CPU::OPCODE CPU::BIT_5_H(){ }
-                
-CPU::OPCODE CPU::BIT_5_L(){ }
-                
-CPU::OPCODE CPU::BIT_5_Addr_HL(){ }
-                
-CPU::OPCODE CPU::BIT_5_A(){ }
-    /* Eighth Row*/
-                
-CPU::OPCODE CPU::BIT_6_B(){ }
-                
-CPU::OPCODE CPU::BIT_6_C(){ }
-                
-CPU::OPCODE CPU::BIT_6_D(){ }
-                
-CPU::OPCODE CPU::BIT_6_E(){ }
-                
-CPU::OPCODE CPU::BIT_6_H(){ }
-                
-CPU::OPCODE CPU::BIT_6_L(){ }
-                
-CPU::OPCODE CPU::BIT_6_Addr_HL(){ }
-                
-CPU::OPCODE CPU::BIT_6_A(){ }
-                
-CPU::OPCODE CPU::BIT_7_B(){ }
-                
-CPU::OPCODE CPU::BIT_7_C(){ }
-                
-CPU::OPCODE CPU::BIT_7_D(){ }
-                
-CPU::OPCODE CPU::BIT_7_E(){ }
-                
-CPU::OPCODE CPU::BIT_7_H(){ }
-                
-CPU::OPCODE CPU::BIT_7_L(){ }
-                
-CPU::OPCODE CPU::BIT_7_Addr_HL(){ }
-                
-CPU::OPCODE CPU::BIT_7_A(){ }
+
+/* Fifth Row*/
+
+// Test bit 0 in B, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_0_B() {
+    return BIT_u3_REG8(0, regs.bc.B);
+}
+// Test bit 0 in C, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_0_C() {
+    return BIT_u3_REG8(0, regs.bc.C);
+}
+// Test bit 0 in D, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_0_D() {
+    return BIT_u3_REG8(0, regs.de.D);
+}
+// Test bit 0 in E, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_0_E() {
+    return BIT_u3_REG8(0, regs.de.E);
+}
+// Test bit 0 in H, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_0_H() {
+    return BIT_u3_REG8(0, regs.hl.H);
+}
+// Test bit 0 in L, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_0_L() {
+    return BIT_u3_REG8(0, regs.hl.L);
+}
+// Test bit 0 in HL, set the zero flag if bit not set.
+// 3 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_0_Addr_HL() {
+    return BIT_u3_Addr_HL(0);
+}
+// Test bit 0 in A, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_0_A() {
+    return BIT_u3_REG8(0, regs.af.A);
+}
+// Test bit 1 in B, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_1_B() {
+    return BIT_u3_REG8(1, regs.bc.B);
+}
+// Test bit 1 in C, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_1_C() {
+    return BIT_u3_REG8(1, regs.bc.C);
+}
+// Test bit 1 in D, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_1_D() {
+    return BIT_u3_REG8(1, regs.de.D);
+}
+// Test bit 1 in E, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_1_E() {
+    return BIT_u3_REG8(1, regs.de.E);
+}
+// Test bit 1 in H, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_1_H() {
+    return BIT_u3_REG8(1, regs.hl.H);
+}
+// Test bit 1 in L, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_1_L() {
+    return BIT_u3_REG8(1, regs.hl.L);
+}
+// Test bit 1 in HL, set the zero flag if bit not set.
+// 3 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_1_Addr_HL() {
+    return BIT_u3_Addr_HL(1);
+}
+// Test bit 1 in A, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_1_A() {
+    return BIT_u3_REG8(1, regs.af.A);
+}
+
+/* Sixth Row */
+
+// Test bit 2 in B, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_2_B() {
+    return BIT_u3_REG8(2, regs.bc.B);
+}
+// Test bit 2 in C, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_2_C() {
+    return BIT_u3_REG8(2, regs.bc.C);
+}
+// Test bit 2 in D, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_2_D() {
+    return BIT_u3_REG8(2, regs.de.D);
+}
+// Test bit 2 in E, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_2_E() {
+    return BIT_u3_REG8(2, regs.de.E);
+}
+// Test bit 2 in H, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_2_H() {
+    return BIT_u3_REG8(2, regs.hl.H);
+}
+// Test bit 2 in L, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_2_L() {
+    return BIT_u3_REG8(2, regs.hl.L);
+}
+// Test bit 2 in HL, set the zero flag if bit not set.
+// 3 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_2_Addr_HL() {
+    return BIT_u3_Addr_HL(2);
+}
+// Test bit 2 in A, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_2_A() {
+    return BIT_u3_REG8(2, regs.af.A);
+}
+// Test bit 3 in B, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_3_B() {
+    return BIT_u3_REG8(3, regs.bc.B);
+}
+// Test bit 3 in C, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_3_C() {
+    return BIT_u3_REG8(3, regs.bc.C);
+}
+// Test bit 3 in D, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_3_D() {
+    return BIT_u3_REG8(3, regs.de.D);
+}
+// Test bit 3 in E, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_3_E() {
+    return BIT_u3_REG8(3, regs.de.E);
+}
+// Test bit 3 in H, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_3_H() {
+    return BIT_u3_REG8(3, regs.hl.H);
+}
+// Test bit 3 in L, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_3_L() {
+    return BIT_u3_REG8(3, regs.hl.L);
+}
+// Test bit 3 in HL, set the zero flag if bit not set.
+// 3 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_3_Addr_HL() {
+    return BIT_u3_Addr_HL(3);
+}
+// Test bit 3 in A, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_3_A() {
+    return BIT_u3_REG8(3, regs.af.A);
+}
+
+/* Seventh Row */
+
+// Test bit 4 in B, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_4_B() {
+    return BIT_u3_REG8(4, regs.bc.B);
+}
+// Test bit 4 in C, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_4_C() {
+    return BIT_u3_REG8(4, regs.bc.C);
+}
+// Test bit 4 in D, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_4_D() {
+    return BIT_u3_REG8(4, regs.de.D);
+}
+// Test bit 4 in E, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_4_E() {
+    return BIT_u3_REG8(4, regs.de.E);
+}
+// Test bit 4 in H, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_4_H() {
+    return BIT_u3_REG8(4, regs.hl.H);
+}
+// Test bit 4 in L, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_4_L() {
+    return BIT_u3_REG8(4, regs.hl.L);
+}
+// Test bit 4 in HL, set the zero flag if bit not set.
+// 3 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_4_Addr_HL() {
+    return BIT_u3_Addr_HL(4);
+}
+// Test bit 4 in A, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_4_A() {
+    return BIT_u3_REG8(4, regs.af.A);
+}
+// Test bit 5 in B, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_5_B() {
+    return BIT_u3_REG8(5, regs.bc.B);
+}
+// Test bit 5 in C, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_5_C() {
+    return BIT_u3_REG8(5, regs.bc.C);
+}
+// Test bit 5 in D, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_5_D() {
+    return BIT_u3_REG8(5, regs.de.D);
+}
+// Test bit 5 in E, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_5_E() {
+    return BIT_u3_REG8(5, regs.de.E);
+}
+// Test bit 5 in H, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_5_H() {
+    return BIT_u3_REG8(5, regs.hl.H);
+}
+// Test bit 5 in L, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_5_L() {
+    return BIT_u3_REG8(5, regs.hl.L);
+}
+// Test bit 5 in HL, set the zero flag if bit not set.
+// 3 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_5_Addr_HL() {
+    return BIT_u3_Addr_HL(5);
+}
+// Test bit 5 in A, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_5_A() {
+    return BIT_u3_REG8(5, regs.af.A);
+}
+
+/* Eighth Row */
+
+// Test bit 6 in B, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_6_B() {
+    return BIT_u3_REG8(6, regs.bc.B);
+}
+// Test bit 6 in C, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_6_C() {
+    return BIT_u3_REG8(6, regs.bc.C);
+}
+// Test bit 6 in D, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_6_D() {
+    return BIT_u3_REG8(6, regs.de.D);
+}
+// Test bit 6 in E, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_6_E() {
+    return BIT_u3_REG8(6, regs.de.E);
+}
+// Test bit 6 in H, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_6_H() {
+    return BIT_u3_REG8(6, regs.hl.H);
+}
+// Test bit 6 in L, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_6_L() {
+    return BIT_u3_REG8(6, regs.hl.L);
+}
+// Test bit 6 in HL, set the zero flag if bit not set.
+// 3 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_6_Addr_HL() {
+    return BIT_u3_Addr_HL(6);
+}
+// Test bit 6 in A, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_6_A() {
+    return BIT_u3_REG8(6, regs.af.A);
+}
+// Test bit 7 in B, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_7_B() {
+    return BIT_u3_REG8(7, regs.bc.B);
+}
+// Test bit 7 in C, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_7_C() {
+    return BIT_u3_REG8(7, regs.bc.C);
+}
+// Test bit 7 in D, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_7_D() {
+    return BIT_u3_REG8(7, regs.de.D);
+}
+// Test bit 7 in E, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_7_E() {
+    return BIT_u3_REG8(7, regs.de.E);
+}
+// Test bit 7 in H, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_7_H() {
+    return BIT_u3_REG8(7, regs.hl.H);
+}
+// Test bit 7 in L, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_7_L() {
+    return BIT_u3_REG8(7, regs.hl.L);
+}
+// Test bit 7 in HL, set the zero flag if bit not set.
+// 3 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_7_Addr_HL() {
+    return BIT_u3_Addr_HL(7);
+}
+// Test bit 7 in A, set the zero flag if bit not set.
+// 2 cycles
+// Z if selected bit it zero, N unset, H set
+CPU::OPCODE CPU::BIT_7_A() {
+    return BIT_u3_REG8(7, regs.af.A);
+}
     /* Ninth Row*/
                 
 CPU::OPCODE CPU::RES_0_B(){ }
