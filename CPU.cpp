@@ -1098,7 +1098,7 @@ int CPU::stepCPU() {
         case 0xF1:
             return POP_AF();
         case 0xF2:
-            return LD_A_FF00_C(ReadN());
+            return LD_A_FF00_C();
         case 0xF3:
             return DI();
         // No 0xF4 mapping
@@ -3418,36 +3418,117 @@ CPU::OPCODE CPU::RLC_B(){
     SetFlag(H, false);
     return 2;
 }
-regs.
-CPU::OPCODE CPU::RLC_C(){ }
+// Rotate register B left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_B() {
+    auto c = (uint8_t)(regs.bc.B >> 7u) & 0x01u;
+    regs.bc.B = (uint8_t)(regs.bc.B << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.bc.B == 0);
+    SetFlag(N, false);
+    SetFalg(H, false);
+    return 2;
+}
 
-CPU::OPCODE CPU::RLC_D(){ }
 
-CPU::OPCODE CPU::RLC_E(){ }
+// Rotate register C left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_C() {
+    auto c = (uint8_t)(regs.bc.C >> 7u) & 0x01u;
+    regs.bc.C = (uint8_t)(regs.bc.C << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.bc.C == 0);
+    SetFlag(N, false);
+    SetFalg(H, false);
+    return 2;
+}
 
-CPU::OPCODE CPU::RLC_H(){ }
 
-CPU::OPCODE CPU::RLC_L(){ }
+// Rotate register D left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_D() {
+    auto c = (uint8_t)(regs.de.D >> 7u) & 0x01u;
+    regs.de.D = (uint8_t)(regs.de.D << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.de.D == 0);
+    SetFlag(N, false);
+    SetFalg(H, false);
+    return 2;
+}
 
-CPU::OPCODE CPU::RLC_Addr_HL(){ }
 
-CPU::OPCODE CPU::RLC_A(){ }
+// Rotate register E left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_E() {
+    auto c = (uint8_t)(regs.de.E >> 7u) & 0x01u;
+    regs.de.E = (uint8_t)(regs.de.E << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.de.E == 0);
+    SetFlag(N, false);
+    SetFalg(H, false);
+    return 2;
+}
 
-CPU::OPCODE CPU::RRC_B(){ }
 
-CPU::OPCODE CPU::RRC_C(){ }
+// Rotate register H left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_H() {
+    auto c = (uint8_t)(regs.hl.H >> 7u) & 0x01u;
+    regs.hl.H = (uint8_t)(regs.hl.H << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.hl.H == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
 
-CPU::OPCODE CPU::RRC_D(){ }
 
-CPU::OPCODE CPU::RRC_E(){ }
+// Rotate register L left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_L() {
+    auto c = (uint8_t)(regs.hl.L >> 7u) & 0x01u;
+    regs.hl.L = (uint8_t)(regs.hl.L << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.hl.L == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
+// Rotate byte at address of HL
+// 4 cycles
+// Z unset
+CPU::OPCODE CPU::RLC_Addr_HL() { 
+    uint8_t byte = READ(regs.hl.HL);
+    auto c = (uint8_t)(byte >> 7u) & 0x01u;
+    byte = (uint8_t)(byte << 1u) | c;
+    WRITE(regs.hl.HL, byte);
+    SetFlag(C, c);
+    SetFlag(Z, byte == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
 
-CPU::OPCODE CPU::RRC_H(){ }
+// Rotate register A left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_A() {
+    auto c = (uint8_t)(regs.af.A >> 7u) & 0x01u;
+    regs.af.A = (uint8_t)(regs.af.A << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.af.A == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
 
-CPU::OPCODE CPU::RRC_L(){ }
-
-CPU::OPCODE CPU::RRC_Addr_HL(){ }
-
-CPU::OPCODE CPU::RRC_A(){ }
+//TODO RRC functions
 
     /* Second Row*/
 CPU::OPCODE CPU::RL_B(){ }
