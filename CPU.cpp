@@ -622,7 +622,7 @@ int CPU::stepCPU() {
         case 0x06:
             return LD_B_n(ReadN());
         case 0x07:
-            return RLC_A();
+            return RLCA();
         case 0x08:
             return LD_Addr_nn_SP(ReadNn());
         case 0x09:
@@ -1745,12 +1745,15 @@ CPU::OPCODE CPU::LD_B_n(uint8_t n)
 }
 
 // Rotate A left with carry
-CPU::OPCODE CPU::RLC_A() {
+CPU::OPCODE CPU::RLCA() {
     // set the carry flag in the F register if there is a resultant carry
     // 0b10110010 -> 0b00000001 -> (& 0x01u) -> 0x01u
     auto c =  (uint8_t)(regs.af.A >> 7u) & 0x01u; // either 0x00 or 0x01
     regs.af.A = (uint8_t)(regs.af.A << 1u) | c;
     SetFlag(C, c);
+    SetFlag(Z, false);
+    SetFlag(N, false);
+    SetFlag(H, false);
     return 1;
 }
 
@@ -3402,8 +3405,20 @@ CPU::OPCODE CPU::RST_38h() {
    - add comments
 */
     /* First Row*/
-CPU::OPCODE CPU::RLC_B(){ }
 
+// Rotate register B left
+// 2 cycles
+// Z if register becomes 0, N unset, H unset, C dependant
+CPU::OPCODE CPU::RLC_B(){ 
+    auto c = (uint8_t)(regs.af.B >> 7u) & 0x01u; // either 0x00 or 0x01
+    regs.af.B = (uint8_t)(regs.af.B << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.af.B == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
+regs.
 CPU::OPCODE CPU::RLC_C(){ }
 
 CPU::OPCODE CPU::RLC_D(){ }
