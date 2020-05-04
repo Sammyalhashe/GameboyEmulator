@@ -638,7 +638,7 @@ int CPU::stepCPU() {
         case 0x0E:
             return LD_C_n(ReadN());
         case 0x0F:
-            return RRC_A();
+            return RRCA();
         /* Second Row */
         case 0x10:
             return STOP();
@@ -655,7 +655,7 @@ int CPU::stepCPU() {
         case 0x16:
             return LD_D_n(ReadN());
         case 0x17:
-            return RL_A();
+            return RLA();
         case 0x18:
             return JR_i(ReadI());
         case 0x19:
@@ -671,7 +671,7 @@ int CPU::stepCPU() {
         case 0x1E:
             return LD_E_n(ReadN());
         case 0x1F:
-            return RR_A();
+            return RRA();
         /* Third Row */
         case 0x20:
           return JR_NZ_i(ReadI());
@@ -1823,7 +1823,7 @@ CPU::OPCODE CPU::LD_C_n(uint8_t n) {
 }
 
 // Rotate Right Carry register A
-CPU::OPCODE CPU::RRC_A() {
+CPU::OPCODE CPU::RRCA() {
     auto c = (regs.af.A) & 0x01u; // either 0x01 or 0x00
     SetFlag(C, c);
     regs.af.A = (uint8_t)(regs.af.A >> 1u) | (uint8_t)(c << 7u);
@@ -1886,7 +1886,7 @@ CPU::OPCODE CPU::LD_D_n(uint8_t n) {
 // Rotate register A left through carry
 // C <- [7 <- 0] <- C
 // Z, N, H are unset, C is affected
-CPU::OPCODE CPU::RL_A() {
+CPU::OPCODE CPU::RLA() {
     // C = 0; 10000001 -> C = 1; 00000010
     auto c = (regs.af.A & BYTE_MSB_MASK) >> 7u;
     auto oldC = GetFlag(C);
@@ -1960,7 +1960,7 @@ CPU::OPCODE CPU::LD_E_n(uint8_t n) {
 // Rotate register A right through carry
 // C -> [7 -> 0] -> C
 // Z, N, H unset, C affected
-CPU::OPCODE CPU::RR_A() {
+CPU::OPCODE CPU::RRA() {
     auto c = regs.af.A & BYTE_LSB_MASK;
     auto oldC = GetFlag(C); // either 0x00 or 0x01
     regs.af.A = (uint8_t)(regs.af.A >> 1u) | (uint8_t)(oldC << 7u);
@@ -3406,18 +3406,7 @@ CPU::OPCODE CPU::RST_38h() {
 */
     /* First Row*/
 
-// Rotate register B left
-// 2 cycles
-// Z if register becomes 0, N unset, H unset, C dependant
-CPU::OPCODE CPU::RLC_B(){ 
-    auto c = (uint8_t)(regs.af.B >> 7u) & 0x01u; // either 0x00 or 0x01
-    regs.af.B = (uint8_t)(regs.af.B << 1u) | c;
-    SetFlag(C, c);
-    SetFlag(Z, regs.af.B == 0);
-    SetFlag(N, false);
-    SetFlag(H, false);
-    return 2;
-}
+
 // Rotate register B left
 // 2 cycles
 // Z unset, N unset, H unset, C affected    
@@ -3427,7 +3416,7 @@ CPU::OPCODE CPU::RLC_B() {
     SetFlag(C, c);
     SetFlag(Z, regs.bc.B == 0);
     SetFlag(N, false);
-    SetFalg(H, false);
+    SetFlag(H, false);
     return 2;
 }
 
@@ -3441,7 +3430,7 @@ CPU::OPCODE CPU::RLC_C() {
     SetFlag(C, c);
     SetFlag(Z, regs.bc.C == 0);
     SetFlag(N, false);
-    SetFalg(H, false);
+    SetFlag(H, false);
     return 2;
 }
 
@@ -3455,7 +3444,7 @@ CPU::OPCODE CPU::RLC_D() {
     SetFlag(C, c);
     SetFlag(Z, regs.de.D == 0);
     SetFlag(N, false);
-    SetFalg(H, false);
+    SetFlag(H, false);
     return 2;
 }
 
@@ -3469,7 +3458,7 @@ CPU::OPCODE CPU::RLC_E() {
     SetFlag(C, c);
     SetFlag(Z, regs.de.E == 0);
     SetFlag(N, false);
-    SetFalg(H, false);
+    SetFlag(H, false);
     return 2;
 }
 
@@ -4023,4 +4012,4 @@ CPU::OPCODE CPU::SET_7_L(){ }
                 
 CPU::OPCODE CPU::SET_7_Addr_HL(){ }
                 
-CPU::OPCODE CPU::SET_7_A();
+CPU::OPCODE CPU::SET_7_A() { }
