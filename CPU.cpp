@@ -92,7 +92,7 @@ int CPU::POP_REG(uint16_t& REG) {
     regs.sp++;
     uint8_t high = READ(regs.sp);
     regs.sp++;
-    REG = (uint8_t)(high << 8u) | low;
+    REG = ((uint8_t)(high << 8u)) | low;
     return 3;
 }
 
@@ -622,7 +622,7 @@ int CPU::stepCPU() {
         case 0x06:
             return LD_B_n(ReadN());
         case 0x07:
-            return RLC_A();
+            return RLCA();
         case 0x08:
             return LD_Addr_nn_SP(ReadNn());
         case 0x09:
@@ -1745,12 +1745,15 @@ CPU::OPCODE CPU::LD_B_n(uint8_t n)
 }
 
 // Rotate A left with carry
-CPU::OPCODE CPU::RLC_A() {
+CPU::OPCODE CPU::RLCA() {
     // set the carry flag in the F register if there is a resultant carry
     // 0b10110010 -> 0b00000001 -> (& 0x01u) -> 0x01u
     auto c =  (uint8_t)(regs.af.A >> 7u) & 0x01u; // either 0x00 or 0x01
     regs.af.A = (uint8_t)(regs.af.A << 1u) | c;
     SetFlag(C, c);
+    SetFlag(Z, false);
+    SetFlag(N, false);
+    SetFlag(H, false);
     return 1;
 }
 
@@ -3395,3 +3398,629 @@ CPU::OPCODE CPU::CP_A_n(uint8_t n) {
 CPU::OPCODE CPU::RST_38h() {
     return RST_VEC(0x38u);
 }
+
+/*--------------------------------------------------- Prefixed Table Below ------------------------------------------------------------*/
+/* TODO:
+   - fill in definitions
+   - add comments
+*/
+    /* First Row*/
+
+// Rotate register B left
+// 2 cycles
+// Z if register becomes 0, N unset, H unset, C dependant
+CPU::OPCODE CPU::RLC_B(){ 
+    auto c = (uint8_t)(regs.af.B >> 7u) & 0x01u; // either 0x00 or 0x01
+    regs.af.B = (uint8_t)(regs.af.B << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.af.B == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
+// Rotate register B left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_B() {
+    auto c = (uint8_t)(regs.bc.B >> 7u) & 0x01u;
+    regs.bc.B = (uint8_t)(regs.bc.B << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.bc.B == 0);
+    SetFlag(N, false);
+    SetFalg(H, false);
+    return 2;
+}
+
+
+// Rotate register C left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_C() {
+    auto c = (uint8_t)(regs.bc.C >> 7u) & 0x01u;
+    regs.bc.C = (uint8_t)(regs.bc.C << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.bc.C == 0);
+    SetFlag(N, false);
+    SetFalg(H, false);
+    return 2;
+}
+
+
+// Rotate register D left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_D() {
+    auto c = (uint8_t)(regs.de.D >> 7u) & 0x01u;
+    regs.de.D = (uint8_t)(regs.de.D << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.de.D == 0);
+    SetFlag(N, false);
+    SetFalg(H, false);
+    return 2;
+}
+
+
+// Rotate register E left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_E() {
+    auto c = (uint8_t)(regs.de.E >> 7u) & 0x01u;
+    regs.de.E = (uint8_t)(regs.de.E << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.de.E == 0);
+    SetFlag(N, false);
+    SetFalg(H, false);
+    return 2;
+}
+
+
+// Rotate register H left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_H() {
+    auto c = (uint8_t)(regs.hl.H >> 7u) & 0x01u;
+    regs.hl.H = (uint8_t)(regs.hl.H << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.hl.H == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
+
+
+// Rotate register L left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_L() {
+    auto c = (uint8_t)(regs.hl.L >> 7u) & 0x01u;
+    regs.hl.L = (uint8_t)(regs.hl.L << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.hl.L == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
+// Rotate byte at address of HL
+// 4 cycles
+// Z unset
+CPU::OPCODE CPU::RLC_Addr_HL() { 
+    uint8_t byte = READ(regs.hl.HL);
+    auto c = (uint8_t)(byte >> 7u) & 0x01u;
+    byte = (uint8_t)(byte << 1u) | c;
+    WRITE(regs.hl.HL, byte);
+    SetFlag(C, c);
+    SetFlag(Z, byte == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
+
+// Rotate register A left
+// 2 cycles
+// Z unset, N unset, H unset, C affected    
+CPU::OPCODE CPU::RLC_A() {
+    auto c = (uint8_t)(regs.af.A >> 7u) & 0x01u;
+    regs.af.A = (uint8_t)(regs.af.A << 1u) | c;
+    SetFlag(C, c);
+    SetFlag(Z, regs.af.A == 0);
+    SetFlag(N, false);
+    SetFlag(H, false);
+    return 2;
+}
+
+//TODO RRC functions
+
+    /* Second Row*/
+CPU::OPCODE CPU::RL_B(){ }
+
+CPU::OPCODE CPU::RL_C(){ }
+                
+CPU::OPCODE CPU::RL_D(){ }
+                
+CPU::OPCODE CPU::RL_E(){ }
+                
+CPU::OPCODE CPU::RL_H(){ }
+                
+CPU::OPCODE CPU::RL_L(){ }
+                
+CPU::OPCODE CPU::RL_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RL_A(){ }
+                
+CPU::OPCODE CPU::RR_B(){ }
+                
+CPU::OPCODE CPU::RR_C(){ }
+                
+CPU::OPCODE CPU::RR_D(){ }
+                
+CPU::OPCODE CPU::RR_E(){ }
+                
+CPU::OPCODE CPU::RR_H(){ }
+                
+CPU::OPCODE CPU::RR_L(){ }
+                
+CPU::OPCODE CPU::RR_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RR_A(){ }
+    /* Third Row*/
+                
+CPU::OPCODE CPU::SLA_B(){ }
+                
+CPU::OPCODE CPU::SLA_C(){ }
+                
+CPU::OPCODE CPU::SLA_D(){ }
+                
+CPU::OPCODE CPU::SLA_E(){ }
+                
+CPU::OPCODE CPU::SLA_H(){ }
+                
+CPU::OPCODE CPU::SLA_L(){ }
+                
+CPU::OPCODE CPU::SLA_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SLA_A(){ }
+                
+CPU::OPCODE CPU::SRA_B(){ }
+                
+CPU::OPCODE CPU::SRA_C(){ }
+                
+CPU::OPCODE CPU::SRA_D(){ }
+                
+CPU::OPCODE CPU::SRA_E(){ }
+                
+CPU::OPCODE CPU::SRA_H(){ }
+                
+CPU::OPCODE CPU::SRA_L(){ }
+                
+CPU::OPCODE CPU::SRA_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SRA_A(){ }
+    /* Fourth Row*/
+                
+CPU::OPCODE CPU::SWAP_B(){ }
+                
+CPU::OPCODE CPU::SWAP_C(){ }
+                
+CPU::OPCODE CPU::SWAP_D(){ }
+                
+CPU::OPCODE CPU::SWAP_E(){ }
+                
+CPU::OPCODE CPU::SWAP_H(){ }
+                
+CPU::OPCODE CPU::SWAP_L(){ }
+                
+CPU::OPCODE CPU::SWAP_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SWAP_A(){ }
+                
+CPU::OPCODE CPU::SRL_B(){ }
+                
+CPU::OPCODE CPU::SRL_C(){ }
+                
+CPU::OPCODE CPU::SRL_D(){ }
+                
+CPU::OPCODE CPU::SRL_E(){ }
+                
+CPU::OPCODE CPU::SRL_H(){ }
+                
+CPU::OPCODE CPU::SRL_L(){ }
+                
+CPU::OPCODE CPU::SRL_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SRL_A(){ }
+    /* Fifth Row*/
+                
+CPU::OPCODE CPU::BIT_0_B(){ }
+                
+CPU::OPCODE CPU::BIT_0_C(){ }
+                
+CPU::OPCODE CPU::BIT_0_D(){ }
+                
+CPU::OPCODE CPU::BIT_0_E(){ }
+                
+CPU::OPCODE CPU::BIT_0_H(){ }
+                
+CPU::OPCODE CPU::BIT_0_L(){ }
+                
+CPU::OPCODE CPU::BIT_0_Addr_HL(){ }
+                
+CPU::OPCODE CPU::BIT_0_A(){ }
+                
+CPU::OPCODE CPU::BIT_1_B(){ }
+                
+CPU::OPCODE CPU::BIT_1_C(){ }
+                
+CPU::OPCODE CPU::BIT_1_D(){ }
+                
+CPU::OPCODE CPU::BIT_1_E(){ }
+                
+CPU::OPCODE CPU::BIT_1_H(){ }
+                
+CPU::OPCODE CPU::BIT_1_L(){ }
+                
+CPU::OPCODE CPU::BIT_1_Addr_HL(){ }
+                
+CPU::OPCODE CPU::BIT_1_A(){ }
+    /* Sixth Row*/
+                
+CPU::OPCODE CPU::BIT_2_B(){ }
+                
+CPU::OPCODE CPU::BIT_2_C(){ }
+                
+CPU::OPCODE CPU::BIT_2_D(){ }
+                
+CPU::OPCODE CPU::BIT_2_E(){ }
+                
+CPU::OPCODE CPU::BIT_2_H(){ }
+                
+CPU::OPCODE CPU::BIT_2_L(){ }
+                
+CPU::OPCODE CPU::BIT_2_Addr_HL(){ }
+                
+CPU::OPCODE CPU::BIT_2_A(){ }
+                
+CPU::OPCODE CPU::BIT_3_B(){ }
+                
+CPU::OPCODE CPU::BIT_3_C(){ }
+                
+CPU::OPCODE CPU::BIT_3_D(){ }
+                
+CPU::OPCODE CPU::BIT_3_E(){ }
+                
+CPU::OPCODE CPU::BIT_3_H(){ }
+                
+CPU::OPCODE CPU::BIT_3_L(){ }
+                
+CPU::OPCODE CPU::BIT_3_Addr_HL(){ }
+                
+CPU::OPCODE CPU::BIT_3_A(){ }
+    /* Seventh Row*/
+                
+CPU::OPCODE CPU::BIT_4_B(){ }
+                
+CPU::OPCODE CPU::BIT_4_C(){ }
+                
+CPU::OPCODE CPU::BIT_4_D(){ }
+                
+CPU::OPCODE CPU::BIT_4_E(){ }
+                
+CPU::OPCODE CPU::BIT_4_H(){ }
+                
+CPU::OPCODE CPU::BIT_4_L(){ }
+                
+CPU::OPCODE CPU::BIT_4_Addr_HL(){ }
+                
+CPU::OPCODE CPU::BIT_4_A(){ }
+                
+CPU::OPCODE CPU::BIT_5_B(){ }
+                
+CPU::OPCODE CPU::BIT_5_C(){ }
+                
+CPU::OPCODE CPU::BIT_5_D(){ }
+                
+CPU::OPCODE CPU::BIT_5_E(){ }
+                
+CPU::OPCODE CPU::BIT_5_H(){ }
+                
+CPU::OPCODE CPU::BIT_5_L(){ }
+                
+CPU::OPCODE CPU::BIT_5_Addr_HL(){ }
+                
+CPU::OPCODE CPU::BIT_5_A(){ }
+    /* Eighth Row*/
+                
+CPU::OPCODE CPU::BIT_6_B(){ }
+                
+CPU::OPCODE CPU::BIT_6_C(){ }
+                
+CPU::OPCODE CPU::BIT_6_D(){ }
+                
+CPU::OPCODE CPU::BIT_6_E(){ }
+                
+CPU::OPCODE CPU::BIT_6_H(){ }
+                
+CPU::OPCODE CPU::BIT_6_L(){ }
+                
+CPU::OPCODE CPU::BIT_6_Addr_HL(){ }
+                
+CPU::OPCODE CPU::BIT_6_A(){ }
+                
+CPU::OPCODE CPU::BIT_7_B(){ }
+                
+CPU::OPCODE CPU::BIT_7_C(){ }
+                
+CPU::OPCODE CPU::BIT_7_D(){ }
+                
+CPU::OPCODE CPU::BIT_7_E(){ }
+                
+CPU::OPCODE CPU::BIT_7_H(){ }
+                
+CPU::OPCODE CPU::BIT_7_L(){ }
+                
+CPU::OPCODE CPU::BIT_7_Addr_HL(){ }
+                
+CPU::OPCODE CPU::BIT_7_A(){ }
+    /* Ninth Row*/
+                
+CPU::OPCODE CPU::RES_0_B(){ }
+                
+CPU::OPCODE CPU::RES_0_C(){ }
+                
+CPU::OPCODE CPU::RES_0_D(){ }
+                
+CPU::OPCODE CPU::RES_0_E(){ }
+                
+CPU::OPCODE CPU::RES_0_H(){ }
+                
+CPU::OPCODE CPU::RES_0_L(){ }
+                
+CPU::OPCODE CPU::RES_0_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RES_0_A(){ }
+                
+CPU::OPCODE CPU::RES_1_B(){ }
+                
+CPU::OPCODE CPU::RES_1_C(){ }
+                
+CPU::OPCODE CPU::RES_1_D(){ }
+                
+CPU::OPCODE CPU::RES_1_E(){ }
+                
+CPU::OPCODE CPU::RES_1_H(){ }
+                
+CPU::OPCODE CPU::RES_1_L(){ }
+                
+CPU::OPCODE CPU::RES_1_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RES_1_A(){ }
+    /* Tenth Row*/
+                
+CPU::OPCODE CPU::RES_2_B(){ }
+                
+CPU::OPCODE CPU::RES_2_C(){ }
+                
+CPU::OPCODE CPU::RES_2_D(){ }
+                
+CPU::OPCODE CPU::RES_2_E(){ }
+                
+CPU::OPCODE CPU::RES_2_H(){ }
+                
+CPU::OPCODE CPU::RES_2_L(){ }
+                
+CPU::OPCODE CPU::RES_2_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RES_2_A(){ }
+                
+CPU::OPCODE CPU::RES_3_B(){ }
+                
+CPU::OPCODE CPU::RES_3_C(){ }
+                
+CPU::OPCODE CPU::RES_3_D(){ }
+                
+CPU::OPCODE CPU::RES_3_E(){ }
+                
+CPU::OPCODE CPU::RES_3_H(){ }
+                
+CPU::OPCODE CPU::RES_3_L(){ }
+                
+CPU::OPCODE CPU::RES_3_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RES_3_A(){ }
+    /* Eleventh Row*/
+                
+CPU::OPCODE CPU::RES_4_B(){ }
+                
+CPU::OPCODE CPU::RES_4_C(){ }
+                
+CPU::OPCODE CPU::RES_4_D(){ }
+                
+CPU::OPCODE CPU::RES_4_E(){ }
+                
+CPU::OPCODE CPU::RES_4_H(){ }
+                
+CPU::OPCODE CPU::RES_4_L(){ }
+                
+CPU::OPCODE CPU::RES_4_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RES_4_A(){ }
+                
+CPU::OPCODE CPU::RES_5_B(){ }
+                
+CPU::OPCODE CPU::RES_5_C(){ }
+                
+CPU::OPCODE CPU::RES_5_D(){ }
+                
+CPU::OPCODE CPU::RES_5_E(){ }
+                
+CPU::OPCODE CPU::RES_5_H(){ }
+                
+CPU::OPCODE CPU::RES_5_L(){ }
+                
+CPU::OPCODE CPU::RES_5_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RES_5_A(){ }
+    /* Twelfth Row*/
+                
+CPU::OPCODE CPU::RES_6_B(){ }
+                
+CPU::OPCODE CPU::RES_6_C(){ }
+                
+CPU::OPCODE CPU::RES_6_D(){ }
+                
+CPU::OPCODE CPU::RES_6_E(){ }
+                
+CPU::OPCODE CPU::RES_6_H(){ }
+                
+CPU::OPCODE CPU::RES_6_L(){ }
+                
+CPU::OPCODE CPU::RES_6_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RES_6_A(){ }
+                
+CPU::OPCODE CPU::RES_7_B(){ }
+                
+CPU::OPCODE CPU::RES_7_C(){ }
+                
+CPU::OPCODE CPU::RES_7_D(){ }
+                
+CPU::OPCODE CPU::RES_7_E(){ }
+                
+CPU::OPCODE CPU::RES_7_H(){ }
+                
+CPU::OPCODE CPU::RES_7_L(){ }
+                
+CPU::OPCODE CPU::RES_7_Addr_HL(){ }
+                
+CPU::OPCODE CPU::RES_7_A(){ }
+    /* Thirteenth Row*/
+                
+CPU::OPCODE CPU::SET_0_B(){ }
+                
+CPU::OPCODE CPU::SET_0_C(){ }
+                
+CPU::OPCODE CPU::SET_0_D(){ }
+                
+CPU::OPCODE CPU::SET_0_E(){ }
+                
+CPU::OPCODE CPU::SET_0_H(){ }
+                
+CPU::OPCODE CPU::SET_0_L(){ }
+                
+CPU::OPCODE CPU::SET_0_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SET_0_A(){ }
+                
+CPU::OPCODE CPU::SET_1_B(){ }
+                
+CPU::OPCODE CPU::SET_1_C(){ }
+                
+CPU::OPCODE CPU::SET_1_D(){ }
+                
+CPU::OPCODE CPU::SET_1_E(){ }
+                
+CPU::OPCODE CPU::SET_1_H(){ }
+                
+CPU::OPCODE CPU::SET_1_L(){ }
+                
+CPU::OPCODE CPU::SET_1_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SET_1_A(){ }
+    /* Fourteenth Row*/
+                
+CPU::OPCODE CPU::SET_2_B(){ }
+                
+CPU::OPCODE CPU::SET_2_C(){ }
+                
+CPU::OPCODE CPU::SET_2_D(){ }
+                
+CPU::OPCODE CPU::SET_2_E(){ }
+                
+CPU::OPCODE CPU::SET_2_H(){ }
+                
+CPU::OPCODE CPU::SET_2_L(){ }
+                
+CPU::OPCODE CPU::SET_2_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SET_2_A(){ }
+                
+CPU::OPCODE CPU::SET_3_B(){ }
+                
+CPU::OPCODE CPU::SET_3_C(){ }
+                
+CPU::OPCODE CPU::SET_3_D(){ }
+                
+CPU::OPCODE CPU::SET_3_E(){ }
+                
+CPU::OPCODE CPU::SET_3_H(){ }
+                
+CPU::OPCODE CPU::SET_3_L(){ }
+                
+CPU::OPCODE CPU::SET_3_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SET_3_A(){ }
+    /* Fifteenth Row*/
+                
+CPU::OPCODE CPU::SET_4_B(){ }
+                
+CPU::OPCODE CPU::SET_4_C(){ }
+                
+CPU::OPCODE CPU::SET_4_D(){ }
+                
+CPU::OPCODE CPU::SET_4_E(){ }
+                
+CPU::OPCODE CPU::SET_4_H(){ }
+                
+CPU::OPCODE CPU::SET_4_L(){ }
+                
+CPU::OPCODE CPU::SET_4_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SET_4_A(){ }
+                
+CPU::OPCODE CPU::SET_5_B(){ }
+                
+CPU::OPCODE CPU::SET_5_C(){ }
+                
+CPU::OPCODE CPU::SET_5_D(){ }
+                
+CPU::OPCODE CPU::SET_5_E(){ }
+                
+CPU::OPCODE CPU::SET_5_H(){ }
+                
+CPU::OPCODE CPU::SET_5_L(){ }
+                
+CPU::OPCODE CPU::SET_5_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SET_5_A(){ }
+    /* Sixteenth Row*/
+                
+CPU::OPCODE CPU::SET_6_B(){ }
+                
+CPU::OPCODE CPU::SET_6_C(){ }
+                
+CPU::OPCODE CPU::SET_6_D(){ }
+                
+CPU::OPCODE CPU::SET_6_E(){ }
+                
+CPU::OPCODE CPU::SET_6_H(){ }
+                
+CPU::OPCODE CPU::SET_6_L(){ }
+                
+CPU::OPCODE CPU::SET_6_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SET_6_A(){ }
+                
+CPU::OPCODE CPU::SET_7_B(){ }
+                
+CPU::OPCODE CPU::SET_7_C(){ }
+                
+CPU::OPCODE CPU::SET_7_D(){ }
+                
+CPU::OPCODE CPU::SET_7_E(){ }
+                
+CPU::OPCODE CPU::SET_7_H(){ }
+                
+CPU::OPCODE CPU::SET_7_L(){ }
+                
+CPU::OPCODE CPU::SET_7_Addr_HL(){ }
+                
+CPU::OPCODE CPU::SET_7_A();
