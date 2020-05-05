@@ -5,9 +5,10 @@
 
 #include "CPU.h"
 #include "Bus.h"
-#include <_types/_uint16_t.h>
-#include <_types/_uint8_t.h>
 #include <cstdint>
+
+using std::uint8_t;
+using std::uint16_t;
 
 // This register keeps track if an interrupt condition was met or not
 #define INTERRUPT_FLAG_REG 0xFF0F
@@ -61,7 +62,6 @@
 CPU::CPU() {}
 
 CPU::~CPU()=default;
-
 uint8_t CPU::READ(u_int16_t addr, bool read_only)
 {
     // check for range validity occurs within bus implementation
@@ -751,6 +751,44 @@ int CPU::SRA_Addr_REG16(const uint16_t& REG) {
     SetFlag(H, false);
     // C set according to the result
     SetFlag(C, c);
+    return 4;
+}
+
+/*
+ * Swap the upper 4 bits in REG with the lower ones
+ * 2 cycles
+ * Z set if result is zero, N unset, H unset, C unset
+ */
+int CPU::SWAP_REG(uint8_t& REG) {
+    uint8_t upper = REG & 0xF0u;
+    uint8_t lower = REG & 0x0Fu;
+    REG = (uint8_t)(upper >> 4u) | (uint8_t)(lower << 4u);
+    // Set Z if result is zero
+    SetFlag(Z, IS_ZERO_8(REG));
+    // Rest unset
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, false);
+    return 2;
+}
+
+/*
+ * Swap the upper 4 bits in the byte pointed by HL and the lower 4 ones
+ * 4 cycles
+ * Same flags as CPU::SWAP_REG
+ */
+int CPU::SWAP_Addr_REG16(const uint16_t &REG) {
+    uint8_t byte = READ(REG);
+    uint8_t upper = byte & 0xF0u;
+    uint8_t lower = byte & 0x0Fu;
+    uint8_t res = (uint8_t)(upper >> 4u) | (uint8_t)(lower << 4u);
+    WRITE(REG, res);
+    // Set Z if result is zero
+    SetFlag(Z, IS_ZERO_8(res));
+    // Rest unset
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, false);
     return 4;
 }
 
@@ -3768,21 +3806,37 @@ CPU::OPCODE CPU::SRA_A(){
 }
     /* Fourth Row*/
                 
-CPU::OPCODE CPU::SWAP_B(){ }
+CPU::OPCODE CPU::SWAP_B(){
+    return SWAP_REG(regs.bc.B);
+}
                 
-CPU::OPCODE CPU::SWAP_C(){ }
+CPU::OPCODE CPU::SWAP_C(){
+    return SWAP_REG(regs.bc.C);
+}
                 
-CPU::OPCODE CPU::SWAP_D(){ }
+CPU::OPCODE CPU::SWAP_D(){
+    return SWAP_REG(regs.de.D);
+}
                 
-CPU::OPCODE CPU::SWAP_E(){ }
+CPU::OPCODE CPU::SWAP_E(){
+    return SWAP_REG(regs.de.E);
+}
                 
-CPU::OPCODE CPU::SWAP_H(){ }
+CPU::OPCODE CPU::SWAP_H(){
+    return SWAP_REG(regs.hl.H);
+}
                 
-CPU::OPCODE CPU::SWAP_L(){ }
+CPU::OPCODE CPU::SWAP_L(){
+    return  SWAP_REG(regs.hl.L);
+}
                 
-CPU::OPCODE CPU::SWAP_Addr_HL(){ }
+CPU::OPCODE CPU::SWAP_Addr_HL(){
+    return SWAP_Addr_REG16(regs.hl.HL);
+}
                 
-CPU::OPCODE CPU::SWAP_A(){ }
+CPU::OPCODE CPU::SWAP_A(){
+    return SWAP_REG(regs.af.A);
+}
                 
 CPU::OPCODE CPU::SRL_B(){ }
                 
