@@ -671,6 +671,47 @@ int CPU::BIT_u3_Addr_HL(int u3) {
     return BIT_u3_REG8(u3, READ(regs.hl.HL)) + 1;
 }
 
+/*
+ * Shift left arithmetic register REG
+ * Summary: C <- [7 <- 0] <- 0
+ * 2 cycles
+ * Z set if the result is zero, N unset, H unset, C set according to the carry output
+ */
+int CPU::SLA_REG(uint8_t& REG) {
+    auto c = (uint8_t)(REG >> 7u) & 0x01u; // either 0x00 or 0x01
+    REG = (uint8_t)(REG << 1u);
+    // Z set depending on the result
+    SetFlag(Z, IS_ZERO_8(REG));
+    // N unset
+    SetFlag(N, false);
+    // H unset
+    SetFlag(H, false);
+    // C set according to the result
+    SetFlag(C, c);
+    return 2;
+}
+
+/*
+ * Shift Left Arithmetic byte pointed to by HL.
+ * Same flags as CPU::SLA_REG
+ * 4 cycles
+ */
+int CPU::SLA_Addr_REG16(uint16_t REG) {
+    uint8_t byte = READ(REG);
+    auto c = (uint8_t)(byte >> 7u) & 0x01u; // either 0x00 or 0x01
+    uint8_t res = (uint8_t)(byte << 1u);
+    WRITE(REG, res);
+    // Z flag is set depending on the result
+    SetFlag(Z, IS_ZERO_8(res));
+    // N unset
+    SetFlag(N, false);
+    // H unset
+    SetFlag(H, false);
+    // C set according to the result
+    SetFlag(C, c);
+    return 4;
+}
+
 
 int CPU::stepCPU() {
     switch (READ(regs.pc++)) {
@@ -1749,8 +1790,7 @@ void CPU::handleInterrupts() {
 }
 
 /*
- * TODO: Complete OPCODES
- */
+ * TODO: Complete OPCODES */
 
 // No-op
 CPU::OPCODE CPU::NOP()
@@ -3621,21 +3661,37 @@ CPU::OPCODE CPU::RR_Addr_HL(){ }
 CPU::OPCODE CPU::RR_A(){ }
     /* Third Row*/
                 
-CPU::OPCODE CPU::SLA_B(){ }
+CPU::OPCODE CPU::SLA_B(){
+    return SLA_REG(regs.bc.B);
+}
                 
-CPU::OPCODE CPU::SLA_C(){ }
+CPU::OPCODE CPU::SLA_C(){
+    return SLA_REG(regs.bc.C);
+}
                 
-CPU::OPCODE CPU::SLA_D(){ }
+CPU::OPCODE CPU::SLA_D(){
+    return SLA_REG(regs.de.D);
+}
                 
-CPU::OPCODE CPU::SLA_E(){ }
+CPU::OPCODE CPU::SLA_E(){
+    return SLA_REG(regs.de.E);
+}
                 
-CPU::OPCODE CPU::SLA_H(){ }
+CPU::OPCODE CPU::SLA_H(){
+    return SLA_REG(regs.hl.H);
+}
                 
-CPU::OPCODE CPU::SLA_L(){ }
+CPU::OPCODE CPU::SLA_L(){
+    return SLA_REG(regs.hl.L);
+}
                 
-CPU::OPCODE CPU::SLA_Addr_HL(){ }
+CPU::OPCODE CPU::SLA_Addr_HL(){
+    return SLA_Addr_REG16(regs.hl.HL);
+}
                 
-CPU::OPCODE CPU::SLA_A(){ }
+CPU::OPCODE CPU::SLA_A(){
+    return SLA_REG(regs.af.A);
+}
                 
 CPU::OPCODE CPU::SRA_B(){ }
                 
