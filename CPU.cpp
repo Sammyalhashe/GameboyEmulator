@@ -672,6 +672,84 @@ int CPU::BIT_u3_Addr_HL(int u3) {
 }
 
 /*
+ * Set bit u3 in REG to 0. 0 being the LSB and 7 being the MSB.
+ * 2 cycles
+ * No flags affected.
+ */
+int CPU::RES_u3_REG8(int u3, uint8_t &REG) {
+    switch (u3) {
+        case 0:
+            REG &= ~BIT_0;
+            break;
+        case 1:
+            REG &= ~BIT_1;
+            break;
+        case 2:
+            REG &= ~BIT_2;
+            break;
+        case 3:
+            REG &= ~BIT_3;
+            break;
+        case 4:
+            REG &= ~BIT_4;
+            break;
+        case 5:
+            REG &= ~BIT_5;
+            break;
+        case 6:
+            REG &= ~BIT_6;
+            break;
+        case 7:
+            REG &= ~BIT_7;
+            break;
+        default:
+            printf("RES_u3_REG8 ::  Bit %d not allowed", u3);
+            std::exit(EXIT_FAILURE);
+    }
+    return 2;
+}
+
+/*
+ * Set bit u3 in the byte pointed to by REG16 to 0.
+ * 4 cycles
+ * No flags affected
+ */
+int CPU::RES_u3_Addr_REG16(int u3, const uint16_t &REG) {
+    uint8_t byte = READ(REG);
+    switch (u3) {
+        case 0:
+            byte &= ~BIT_0;
+            break;
+        case 1:
+            byte &= ~BIT_1;
+            break;
+        case 2:
+            byte &= ~BIT_2;
+            break;
+        case 3:
+            byte &= ~BIT_3;
+            break;
+        case 4:
+            byte &= ~BIT_4;
+            break;
+        case 5:
+            byte &= ~BIT_5;
+            break;
+        case 6:
+            byte &= ~BIT_6;
+            break;
+        case 7:
+            byte &= ~BIT_7;
+            break;
+        default:
+            printf("RES_u3_Addr_REG16 ::  Bit %d not allowed", u3);
+            std::exit(EXIT_FAILURE);
+    }
+    WRITE(REG, byte);
+    return 4;
+}
+
+/*
  * Shift left arithmetic register REG
  * Summary: C <- [7 <- 0] <- 0
  * 2 cycles
@@ -699,7 +777,7 @@ int CPU::SLA_REG(uint8_t& REG) {
 int CPU::SLA_Addr_REG16(const uint16_t& REG) {
     uint8_t byte = READ(REG);
     auto c = (uint8_t)(byte >> 7u) & 0x01u; // either 0x00 or 0x01
-    uint8_t res = (uint8_t)(byte << 1u);
+    auto res = (uint8_t)(byte << 1u);
     WRITE(REG, res);
     // Z flag is set depending on the result
     SetFlag(Z, IS_ZERO_8(res));
@@ -4308,137 +4386,210 @@ CPU::OPCODE CPU::BIT_7_A() {
     return BIT_u3_REG8(7, regs.af.A);
 }
     /* Ninth Row*/
-                
-CPU::OPCODE CPU::RES_0_B(){ }
-                
-CPU::OPCODE CPU::RES_0_C(){ }
-                
-CPU::OPCODE CPU::RES_0_D(){ }
-                
-CPU::OPCODE CPU::RES_0_E(){ }
-                
-CPU::OPCODE CPU::RES_0_H(){ }
-                
-CPU::OPCODE CPU::RES_0_L(){ }
-                
-CPU::OPCODE CPU::RES_0_Addr_HL(){ }
-                
-CPU::OPCODE CPU::RES_0_A(){ }
-                
-CPU::OPCODE CPU::RES_1_B(){ }
-                
-CPU::OPCODE CPU::RES_1_C(){ }
-                
-CPU::OPCODE CPU::RES_1_D(){ }
-                
-CPU::OPCODE CPU::RES_1_E(){ }
-                
-CPU::OPCODE CPU::RES_1_H(){ }
-                
-CPU::OPCODE CPU::RES_1_L(){ }
-                
-CPU::OPCODE CPU::RES_1_Addr_HL(){ }
-                
-CPU::OPCODE CPU::RES_1_A(){ }
-    /* Tenth Row*/
-                
-CPU::OPCODE CPU::RES_2_B(){ }
-                
-CPU::OPCODE CPU::RES_2_C(){ }
-                
-CPU::OPCODE CPU::RES_2_D(){ }
-                
-CPU::OPCODE CPU::RES_2_E(){ }
-                
-CPU::OPCODE CPU::RES_2_H(){ }
-                
-CPU::OPCODE CPU::RES_2_L(){ }
-                
-CPU::OPCODE CPU::RES_2_Addr_HL(){ }
-                
-CPU::OPCODE CPU::RES_2_A(){ }
-                
-CPU::OPCODE CPU::RES_3_B(){ }
-                
-CPU::OPCODE CPU::RES_3_C(){ }
-                
-CPU::OPCODE CPU::RES_3_D(){ }
-                
-CPU::OPCODE CPU::RES_3_E(){ }
-                
-CPU::OPCODE CPU::RES_3_H(){ }
-                
-CPU::OPCODE CPU::RES_3_L(){ }
-                
-CPU::OPCODE CPU::RES_3_Addr_HL(){ }
-                
-CPU::OPCODE CPU::RES_3_A(){ }
-    /* Eleventh Row*/
-                
-CPU::OPCODE CPU::RES_4_B(){ }
-                
-CPU::OPCODE CPU::RES_4_C(){ }
-                
-CPU::OPCODE CPU::RES_4_D(){ }
-                
-CPU::OPCODE CPU::RES_4_E(){ }
-                
-CPU::OPCODE CPU::RES_4_H(){ }
-                
-CPU::OPCODE CPU::RES_4_L(){ }
-                
-CPU::OPCODE CPU::RES_4_Addr_HL(){ }
-                
-CPU::OPCODE CPU::RES_4_A(){ }
-                
-CPU::OPCODE CPU::RES_5_B(){ }
-                
-CPU::OPCODE CPU::RES_5_C(){ }
-                
-CPU::OPCODE CPU::RES_5_D(){ }
-                
-CPU::OPCODE CPU::RES_5_E(){ }
-                
-CPU::OPCODE CPU::RES_5_H(){ }
-                
-CPU::OPCODE CPU::RES_5_L(){ }
-                
-CPU::OPCODE CPU::RES_5_Addr_HL(){ }
-                
-CPU::OPCODE CPU::RES_5_A(){ }
-    /* Twelfth Row*/
-                
-CPU::OPCODE CPU::RES_6_B(){ }
-                
-CPU::OPCODE CPU::RES_6_C(){ }
-                
-CPU::OPCODE CPU::RES_6_D(){ }
-                
-CPU::OPCODE CPU::RES_6_E(){ }
-                
-CPU::OPCODE CPU::RES_6_H(){ }
-                
-CPU::OPCODE CPU::RES_6_L(){ }
-                
-CPU::OPCODE CPU::RES_6_Addr_HL(){ }
-                
-CPU::OPCODE CPU::RES_6_A(){ }
-                
-CPU::OPCODE CPU::RES_7_B(){ }
-                
-CPU::OPCODE CPU::RES_7_C(){ }
-                
-CPU::OPCODE CPU::RES_7_D(){ }
-                
-CPU::OPCODE CPU::RES_7_E(){ }
-                
-CPU::OPCODE CPU::RES_7_H(){ }
-                
-CPU::OPCODE CPU::RES_7_L(){ }
-                
-CPU::OPCODE CPU::RES_7_Addr_HL(){ }
-                
-CPU::OPCODE CPU::RES_7_A(){ }
+
+CPU::OPCODE CPU::RES_0_B() {
+    return RES_u3_REG8(0, regs.bc.B);
+}
+CPU::OPCODE CPU::RES_0_C() {
+    return RES_u3_REG8(0, regs.bc.C);
+}
+CPU::OPCODE CPU::RES_0_D() {
+    return RES_u3_REG8(0, regs.de.D);
+}
+CPU::OPCODE CPU::RES_0_E() {
+    return RES_u3_REG8(0, regs.de.E);
+}
+CPU::OPCODE CPU::RES_0_H() {
+    return RES_u3_REG8(0, regs.hl.H);
+}
+CPU::OPCODE CPU::RES_0_L() {
+    return RES_u3_REG8(0, regs.hl.L);
+}
+CPU::OPCODE CPU::RES_0_Addr_HL() {
+    return RES_u3_Addr_REG16(0, regs.hl.HL);
+}
+CPU::OPCODE CPU::RES_0_A() {
+    return RES_u3_REG8(0, regs.af.A);
+}
+CPU::OPCODE CPU::RES_1_B() {
+    return RES_u3_REG8(1, regs.bc.B);
+}
+CPU::OPCODE CPU::RES_1_C() {
+    return RES_u3_REG8(1, regs.bc.C);
+}
+CPU::OPCODE CPU::RES_1_D() {
+    return RES_u3_REG8(1, regs.de.D);
+}
+CPU::OPCODE CPU::RES_1_E() {
+    return RES_u3_REG8(1, regs.de.E);
+}
+CPU::OPCODE CPU::RES_1_H() {
+    return RES_u3_REG8(1, regs.hl.H);
+}
+CPU::OPCODE CPU::RES_1_L() {
+    return RES_u3_REG8(1, regs.hl.L);
+}
+CPU::OPCODE CPU::RES_1_Addr_HL() {
+    return RES_u3_Addr_REG16(1, regs.hl.HL);
+}
+CPU::OPCODE CPU::RES_1_A() {
+    return RES_u3_REG8(1, regs.af.A);
+}
+
+// 10th row
+
+CPU::OPCODE CPU::RES_2_B() {
+    return RES_u3_REG8(2, regs.bc.B);
+}
+CPU::OPCODE CPU::RES_2_C() {
+    return RES_u3_REG8(2, regs.bc.C);
+}
+CPU::OPCODE CPU::RES_2_D() {
+    return RES_u3_REG8(2, regs.de.D);
+}
+CPU::OPCODE CPU::RES_2_E() {
+    return RES_u3_REG8(2, regs.de.E);
+}
+CPU::OPCODE CPU::RES_2_H() {
+    return RES_u3_REG8(2, regs.hl.H);
+}
+CPU::OPCODE CPU::RES_2_L() {
+    return RES_u3_REG8(2, regs.hl.L);
+}
+CPU::OPCODE CPU::RES_2_Addr_HL() {
+    return RES_u3_Addr_REG16(2, regs.hl.HL);
+}
+CPU::OPCODE CPU::RES_2_A() {
+    return RES_u3_REG8(2, regs.af.A);
+}
+CPU::OPCODE CPU::RES_3_B() {
+    return RES_u3_REG8(3, regs.bc.B);
+}
+CPU::OPCODE CPU::RES_3_C() {
+    return RES_u3_REG8(3, regs.bc.C);
+}
+CPU::OPCODE CPU::RES_3_D() {
+    return RES_u3_REG8(3, regs.de.D);
+}
+CPU::OPCODE CPU::RES_3_E() {
+    return RES_u3_REG8(3, regs.de.E);
+}
+CPU::OPCODE CPU::RES_3_H() {
+    return RES_u3_REG8(3, regs.hl.H);
+}
+CPU::OPCODE CPU::RES_3_L() {
+    return RES_u3_REG8(3, regs.hl.L);
+}
+CPU::OPCODE CPU::RES_3_Addr_HL() {
+    return RES_u3_Addr_REG16(3, regs.hl.HL);
+}
+CPU::OPCODE CPU::RES_3_A() {
+    return RES_u3_REG8(3, regs.af.A);
+}
+
+
+// 11th row
+
+CPU::OPCODE CPU::RES_4_B() {
+    return RES_u3_REG8(4, regs.bc.B);
+}
+CPU::OPCODE CPU::RES_4_C() {
+    return RES_u3_REG8(4, regs.bc.C);
+}
+CPU::OPCODE CPU::RES_4_D() {
+    return RES_u3_REG8(4, regs.de.D);
+}
+CPU::OPCODE CPU::RES_4_E() {
+    return RES_u3_REG8(4, regs.de.E);
+}
+CPU::OPCODE CPU::RES_4_H() {
+    return RES_u3_REG8(4, regs.hl.H);
+}
+CPU::OPCODE CPU::RES_4_L() {
+    return RES_u3_REG8(4, regs.hl.L);
+}
+CPU::OPCODE CPU::RES_4_Addr_HL() {
+    return RES_u3_Addr_REG16(4, regs.hl.HL);
+}
+CPU::OPCODE CPU::RES_4_A() {
+    return RES_u3_REG8(4, regs.af.A);
+}
+CPU::OPCODE CPU::RES_5_B() {
+    return RES_u3_REG8(5, regs.bc.B);
+}
+CPU::OPCODE CPU::RES_5_C() {
+    return RES_u3_REG8(5, regs.bc.C);
+}
+CPU::OPCODE CPU::RES_5_D() {
+    return RES_u3_REG8(5, regs.de.D);
+}
+CPU::OPCODE CPU::RES_5_E() {
+    return RES_u3_REG8(5, regs.de.E);
+}
+CPU::OPCODE CPU::RES_5_H() {
+    return RES_u3_REG8(5, regs.hl.H);
+}
+CPU::OPCODE CPU::RES_5_L() {
+    return RES_u3_REG8(5, regs.hl.L);
+}
+CPU::OPCODE CPU::RES_5_Addr_HL() {
+    return RES_u3_Addr_REG16(5, regs.hl.HL);
+}
+CPU::OPCODE CPU::RES_5_A() {
+    return RES_u3_REG8(5, regs.af.A);
+}
+
+// 12th row
+
+CPU::OPCODE CPU::RES_6_B() {
+    return RES_u3_REG8(6, regs.bc.B);
+}
+CPU::OPCODE CPU::RES_6_C() {
+    return RES_u3_REG8(6, regs.bc.C);
+}
+CPU::OPCODE CPU::RES_6_D() {
+    return RES_u3_REG8(6, regs.de.D);
+}
+CPU::OPCODE CPU::RES_6_E() {
+    return RES_u3_REG8(6, regs.de.E);
+}
+CPU::OPCODE CPU::RES_6_H() {
+    return RES_u3_REG8(6, regs.hl.H);
+}
+CPU::OPCODE CPU::RES_6_L() {
+    return RES_u3_REG8(6, regs.hl.L);
+}
+CPU::OPCODE CPU::RES_6_Addr_HL() {
+    return RES_u3_Addr_REG16(6, regs.hl.HL);
+}
+CPU::OPCODE CPU::RES_6_A() {
+    return RES_u3_REG8(6, regs.af.A);
+}
+CPU::OPCODE CPU::RES_7_B() {
+    return RES_u3_REG8(7, regs.bc.B);
+}
+CPU::OPCODE CPU::RES_7_C() {
+    return RES_u3_REG8(7, regs.bc.C);
+}
+CPU::OPCODE CPU::RES_7_D() {
+    return RES_u3_REG8(7, regs.de.D);
+}
+CPU::OPCODE CPU::RES_7_E() {
+    return RES_u3_REG8(7, regs.de.E);
+}
+CPU::OPCODE CPU::RES_7_H() {
+    return RES_u3_REG8(7, regs.hl.H);
+}
+CPU::OPCODE CPU::RES_7_L() {
+    return RES_u3_REG8(7, regs.hl.L);
+}
+CPU::OPCODE CPU::RES_7_Addr_HL() {
+    return RES_u3_Addr_REG16(7, regs.hl.HL);
+}
+CPU::OPCODE CPU::RES_7_A() {
+    return RES_u3_REG8(7, regs.af.A);
+}
+
     /* Thirteenth Row*/
                 
 CPU::OPCODE CPU::SET_0_B(){ }

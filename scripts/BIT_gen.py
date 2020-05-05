@@ -1,5 +1,6 @@
-FUNC = "SLA"
-BIT = False
+FUNC = "RES"
+BIT = True
+COMMENT = False
 
 REG_MAPPINGS = {
     "A": "af",
@@ -30,18 +31,21 @@ def generate_code(func, bit, REG, addr=False):
     }}
     """.format(bit, "_Addr" if addr else "", REG,
                "{}_u3_REG8".format(func)
-               if not addr else "{}_Addr_HL".format(func), ", regs." + REG_MAPPINGS[REG]
-               + "." + REG if not addr else "", func)
+               if not addr else "{}_u3_Addr_REG16".format(func), ", regs." + REG_MAPPINGS[REG]
+               + "." + REG, func)
 
 
-with open("BIT_u3_REG8", "w") as f:
+with open("../RES_u3_REG8", "w") as f:
 
     if BIT:
         for bit in BITS.split(","):
             for reg in REGS.split(","):
                 addr = len(reg) > 1
-                f.write(generate_comment(bit, reg, addr) +
-                        generate_code(FUNC, bit, reg, addr))
+                if COMMENT:
+                    f.write(generate_comment(bit, reg, addr) +
+                            generate_code(FUNC, bit, reg, addr))
+                else:
+                    f.write(generate_code(FUNC, bit, reg, addr))
     else:
         for reg in REGS.split(","):
             addr = len(reg) > 1
