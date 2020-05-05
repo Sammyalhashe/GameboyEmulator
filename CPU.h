@@ -238,7 +238,9 @@ private: //OPCODES
     int BIT_u3_REG8(int u3, uint8_t REG);
     int BIT_u3_Addr_HL(int u3);
     int SLA_REG(uint8_t& REG);
-    int SLA_Addr_REG16(uint16_t REG);
+    int SLA_Addr_REG16(const uint16_t& REG);
+    int SRA_REG(uint8_t& REG);
+    int SRA_Addr_REG16(const uint16_t& REG);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();
