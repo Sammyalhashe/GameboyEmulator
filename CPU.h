@@ -241,6 +241,8 @@ private: //OPCODES
     int SRA_Addr_REG16(const uint16_t& REG);
     int SWAP_REG(uint8_t& REG);
     int SWAP_Addr_REG16(const uint16_t& REG);
+    int SRL_REG(uint8_t& REGA);
+    int SRL_Addr_REG16(const uint16_t& REG);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();

@@ -755,6 +755,48 @@ int CPU::SRA_Addr_REG16(const uint16_t& REG) {
 }
 
 /*
+ * Shift Right Logic register REG.
+ * Summary: 0 -> [7 -> 0] -> C
+ * 2 cycles
+ * Set Z if result is zero, N unset, H unset, C set according to result
+ */
+int CPU::SRL_REG(uint8_t& REG) {
+    auto c = (uint8_t)(REG & 0x01u); // either 0x00 or 0x01
+    REG = (uint8_t)(REG >> 1u);
+    // Z set depending on the result
+    SetFlag(Z, IS_ZERO_8(REG));
+    // N unset
+    SetFlag(N, false);
+    // H unset
+    SetFlag(H, false);
+    // C set according to the result
+    SetFlag(C, c);
+    return 2;
+}
+
+/*
+ * Shift Right Logic byte pointed to by REG16.
+ * See summary for CPU::SRL_REG
+ * 4 cycles
+ * Same flags as CPU::SRL_REG
+ */
+int CPU::SRL_Addr_REG16(const uint16_t &REG) {
+    uint8_t byte = READ(REG);
+    auto c = (uint8_t)(byte & 0x01u); // either 0x00 or 0x01
+    auto res = (uint8_t)(byte >> 1u);
+    WRITE(REG, res);
+    // Z set depending on the result
+    SetFlag(Z, IS_ZERO_8(res));
+    // N unset
+    SetFlag(N, false);
+    // H unset
+    SetFlag(H, false);
+    // C set according to the result
+    SetFlag(C, c);
+    return 4;
+}
+
+/*
  * Swap the upper 4 bits in REG with the lower ones
  * 2 cycles
  * Z set if result is zero, N unset, H unset, C unset
@@ -3838,21 +3880,37 @@ CPU::OPCODE CPU::SWAP_A(){
     return SWAP_REG(regs.af.A);
 }
                 
-CPU::OPCODE CPU::SRL_B(){ }
+CPU::OPCODE CPU::SRL_B(){
+    return SRL_REG(regs.bc.B);
+}
                 
-CPU::OPCODE CPU::SRL_C(){ }
+CPU::OPCODE CPU::SRL_C(){
+    return SRL_REG(regs.bc.C);
+}
                 
-CPU::OPCODE CPU::SRL_D(){ }
+CPU::OPCODE CPU::SRL_D(){
+    return SRL_REG(regs.de.D);
+}
                 
-CPU::OPCODE CPU::SRL_E(){ }
+CPU::OPCODE CPU::SRL_E(){
+    return SRL_REG(regs.de.E);
+}
                 
-CPU::OPCODE CPU::SRL_H(){ }
+CPU::OPCODE CPU::SRL_H(){
+    return SRL_REG(regs.hl.H);
+}
                 
-CPU::OPCODE CPU::SRL_L(){ }
+CPU::OPCODE CPU::SRL_L(){
+    return SRL_REG(regs.hl.L);
+}
                 
-CPU::OPCODE CPU::SRL_Addr_HL(){ }
+CPU::OPCODE CPU::SRL_Addr_HL(){
+    return SRL_Addr_REG16(regs.hl.HL);
+}
                 
-CPU::OPCODE CPU::SRL_A(){ }
+CPU::OPCODE CPU::SRL_A(){
+    return SRL_REG(regs.af.A);
+}
 
 /* Fifth Row*/
 
