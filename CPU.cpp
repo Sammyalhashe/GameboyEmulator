@@ -1199,7 +1199,7 @@ int CPU::stepCPU() {
         case 0x62:
             return LD_H_D();
         case 0x63:
-            return LD_H_C();
+            return LD_H_E();
         case 0x64:
             return LD_H_H();
         case 0x65:
