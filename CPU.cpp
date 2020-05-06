@@ -826,6 +826,85 @@ int CPU::SET_u3_Addr_REG16(int u3, const uint16_t &REG) {
     }
     return 4;
 }
+/*
+ * Rotates bits in register left through carry
+ * Summary: C <- [7 <- 0] <- C
+ * 2 cycles
+ * Z set if resultis zero, N unset, H unset, C set according to result
+ */
+int CPU::RL_REG(uint8_t& REG) {
+    auto newC = (uint8_t)(REG >> 7u) & 0x01u; // either 0x00 or 0x01
+    auto oldC = GetFlag(C);
+    REG = (uint8_t)(REG << 1u) | oldC;
+    // Set Z if result is zero
+    SetFlag(Z, IS_ZERO_8(REG));
+    // N unset
+    SetFlag(N, false);
+    // H unset
+    SetFlag(H, false);
+    // C  set according to the result
+    SetFlag(C, newC);
+    return 2;
+}
+
+/*
+ * Rotates bits in byte pointed to by REG left through carry
+ * Summary: C <- [7 <- 0] <- C
+ * 4 cycles
+ * Z set if result is zero, N unset, H unset, C set according to result
+ */
+int CPU::RL_Addr_REG16(const uint16_t& REG) {
+    uint8_t byte = READ(REG);
+    auto newC = (uint8_t)(byte >> 7u) & 0x01u; // either 0x00 or 0x01
+    auto oldC = GetFlag(C);
+    byte = (uint8_t)(byte << 1u) | oldC;
+    WRITE(REG, byte);
+    // Set Z if result is zero
+    SetFlag(Z, IS_ZERO_8(byte));
+    // N unset
+    SetFlag(N, false);
+    // H unset
+    SetFlag(H, false);
+    // C  set according to the result
+    SetFlag(C, newC);
+    return 4;
+}
+
+/*
+ * Rotate register REG right through carry.
+ * Summary: C -> [7 -> 0] -> C
+ * 2 cycles
+ * Z set if result is zero, N unset, H unset, C set according to result
+ */
+int CPU::RR_REG(uint8_t& REG) {
+    auto newC = (uint8_t)(REG & 0x01u);
+    auto oldC = GetFlag(C);
+    REG = (uint8_t)(REG >> 1u) | (uint8_t)(oldC << 7u);
+    SetFlag(Z, IS_ZERO_8(REG));
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, newC);
+    return 2;
+}
+
+/*
+ * Rotate the byte register REG points to right through carry.
+ * Summary: C -> [7 -> 0] -> C
+ * 4 cycles
+ * Z set if result is zero, N unset, H unset, C set according to result
+ */
+int CPU::RR_Addr_REG16(const uint16_t& REG) {
+    uint8_t byte = READ(REG);
+    auto newC = (uint8_t)(byte & 0x01u);
+    auto oldC = GetFlag(C);
+    byte = (uint8_t)(byte >> 1u) | (uint8_t)(oldC << 7u);
+    WRITE(REG, byte);
+    SetFlag(Z, IS_ZERO_8(byte));
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, newC);
+    return 4;
+}
 
 /*
  * Shift left arithmetic register REG
@@ -3903,40 +3982,72 @@ CPU::OPCODE CPU::RLC_A() {
     return 2;
 }
 
-//TODO RRC functions
+// TODO RRC functions
 
     /* Second Row*/
-CPU::OPCODE CPU::RL_B(){ }
+CPU::OPCODE CPU::RL_B(){
+    return RL_REG(regs.bc.B);
+}
 
-CPU::OPCODE CPU::RL_C(){ }
+CPU::OPCODE CPU::RL_C(){
+    return RL_REG(regs.bc.C);
+}
                 
-CPU::OPCODE CPU::RL_D(){ }
+CPU::OPCODE CPU::RL_D(){ 
+    return RL_REG(regs.de.D);
+}
                 
-CPU::OPCODE CPU::RL_E(){ }
+CPU::OPCODE CPU::RL_E(){ 
+    return RL_REG(regs.de.E);
+}
                 
-CPU::OPCODE CPU::RL_H(){ }
+CPU::OPCODE CPU::RL_H(){ 
+    return RL_REG(regs.hl.H);
+}
                 
-CPU::OPCODE CPU::RL_L(){ }
+CPU::OPCODE CPU::RL_L(){ 
+    return RL_REG(regs.hl.L);
+}
                 
-CPU::OPCODE CPU::RL_Addr_HL(){ }
+CPU::OPCODE CPU::RL_Addr_HL(){ 
+    return RL_Addr_REG16(regs.hl.HL);
+}
                 
-CPU::OPCODE CPU::RL_A(){ }
+CPU::OPCODE CPU::RL_A(){ 
+    return RL_REG(regs.af.A);
+}
                 
-CPU::OPCODE CPU::RR_B(){ }
+CPU::OPCODE CPU::RR_B(){ 
+    return RR_REG(regs.bc.B);
+}
                 
-CPU::OPCODE CPU::RR_C(){ }
+CPU::OPCODE CPU::RR_C(){ 
+    return RR_REG(regs.bc.C);
+}
                 
-CPU::OPCODE CPU::RR_D(){ }
+CPU::OPCODE CPU::RR_D(){ 
+    return RR_REG(regs.de.D);
+}
                 
-CPU::OPCODE CPU::RR_E(){ }
+CPU::OPCODE CPU::RR_E(){ 
+    return RR_REG(regs.de.E);
+}
                 
-CPU::OPCODE CPU::RR_H(){ }
+CPU::OPCODE CPU::RR_H(){ 
+    return RR_REG(regs.hl.H);
+}
                 
-CPU::OPCODE CPU::RR_L(){ }
+CPU::OPCODE CPU::RR_L(){ 
+    return RR_REG(regs.hl.L);
+}
                 
-CPU::OPCODE CPU::RR_Addr_HL(){ }
+CPU::OPCODE CPU::RR_Addr_HL(){ 
+    return RR_Addr_REG16(regs.hl.HL);
+}
                 
-CPU::OPCODE CPU::RR_A(){ }
+CPU::OPCODE CPU::RR_A(){ 
+    return RR_REG(regs.af.A);
+}
     /* Third Row*/
                 
 CPU::OPCODE CPU::SLA_B(){
