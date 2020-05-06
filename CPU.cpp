@@ -59,7 +59,7 @@ using std::uint16_t;
 #define IS_ZERO_8(n) ((n) == 0)
 
 
-CPU::CPU() {}
+CPU::CPU() = default;
 
 CPU::~CPU()=default;
 uint8_t CPU::READ(u_int16_t addr, bool read_only)
@@ -746,6 +746,84 @@ int CPU::RES_u3_Addr_REG16(int u3, const uint16_t &REG) {
             std::exit(EXIT_FAILURE);
     }
     WRITE(REG, byte);
+    return 4;
+}
+
+/*
+ * Set bit u3 in REG to 1. 0 being the LSB and 7 being the MSB.
+ * 2 cycles
+ * No flags affected.
+ */
+int CPU::SET_u3_REG8(int u3, uint8_t &REG) {
+    switch (u3) {
+        case 0:
+            REG |= BIT_0;
+            break;
+        case 1:
+            REG |= BIT_1;
+            break;
+        case 2:
+            REG |= BIT_2;
+            break;
+        case 3:
+            REG |= BIT_3;
+            break;
+        case 4:
+            REG |= BIT_4;
+            break;
+        case 5:
+            REG |= BIT_5;
+            break;
+        case 6:
+            REG |= BIT_6;
+            break;
+        case 7:
+            REG |= BIT_7;
+            break;
+        default:
+            printf("SET_u3_REG8 ::  Bit %d not allowed", u3);
+            std::exit(EXIT_FAILURE);
+    }
+    return 2;
+}
+
+
+/*
+ * Set bit u3 in the byte pointed to by REG16 to 1.
+ * 4 cycles
+ * No flags affected
+ */
+int CPU::SET_u3_Addr_REG16(int u3, const uint16_t &REG) {
+    uint8_t byte = READ(REG);
+    switch (u3) {
+        case 0:
+            byte |= BIT_0;
+            break;
+        case 1:
+            byte |= BIT_1;
+            break;
+        case 2:
+            byte |= BIT_2;
+            break;
+        case 3:
+            byte |= BIT_3;
+            break;
+        case 4:
+            byte |= BIT_4;
+            break;
+        case 5:
+            byte |= BIT_5;
+            break;
+        case 6:
+            byte |= BIT_6;
+            break;
+        case 7:
+            byte |= BIT_7;
+            break;
+        default:
+            printf("SET_u3_Addr_REG16 ::  Bit %d not allowed", u3);
+            std::exit(EXIT_FAILURE);
+    }
     return 4;
 }
 
@@ -4591,134 +4669,196 @@ CPU::OPCODE CPU::RES_7_A() {
 }
 
     /* Thirteenth Row*/
-                
-CPU::OPCODE CPU::SET_0_B(){ }
-                
-CPU::OPCODE CPU::SET_0_C(){ }
-                
-CPU::OPCODE CPU::SET_0_D(){ }
-                
-CPU::OPCODE CPU::SET_0_E(){ }
-                
-CPU::OPCODE CPU::SET_0_H(){ }
-                
-CPU::OPCODE CPU::SET_0_L(){ }
-                
-CPU::OPCODE CPU::SET_0_Addr_HL(){ }
-                
-CPU::OPCODE CPU::SET_0_A(){ }
-                
-CPU::OPCODE CPU::SET_1_B(){ }
-                
-CPU::OPCODE CPU::SET_1_C(){ }
-                
-CPU::OPCODE CPU::SET_1_D(){ }
-                
-CPU::OPCODE CPU::SET_1_E(){ }
-                
-CPU::OPCODE CPU::SET_1_H(){ }
-                
-CPU::OPCODE CPU::SET_1_L(){ }
-                
-CPU::OPCODE CPU::SET_1_Addr_HL(){ }
-                
-CPU::OPCODE CPU::SET_1_A(){ }
-    /* Fourteenth Row*/
-                
-CPU::OPCODE CPU::SET_2_B(){ }
-                
-CPU::OPCODE CPU::SET_2_C(){ }
-                
-CPU::OPCODE CPU::SET_2_D(){ }
-                
-CPU::OPCODE CPU::SET_2_E(){ }
-                
-CPU::OPCODE CPU::SET_2_H(){ }
-                
-CPU::OPCODE CPU::SET_2_L(){ }
-                
-CPU::OPCODE CPU::SET_2_Addr_HL(){ }
-                
-CPU::OPCODE CPU::SET_2_A(){ }
-                
-CPU::OPCODE CPU::SET_3_B(){ }
-                
-CPU::OPCODE CPU::SET_3_C(){ }
-                
-CPU::OPCODE CPU::SET_3_D(){ }
-                
-CPU::OPCODE CPU::SET_3_E(){ }
-                
-CPU::OPCODE CPU::SET_3_H(){ }
-                
-CPU::OPCODE CPU::SET_3_L(){ }
-                
-CPU::OPCODE CPU::SET_3_Addr_HL(){ }
-                
-CPU::OPCODE CPU::SET_3_A(){ }
-    /* Fifteenth Row*/
-                
-CPU::OPCODE CPU::SET_4_B(){ }
-                
-CPU::OPCODE CPU::SET_4_C(){ }
-                
-CPU::OPCODE CPU::SET_4_D(){ }
-                
-CPU::OPCODE CPU::SET_4_E(){ }
-                
-CPU::OPCODE CPU::SET_4_H(){ }
-                
-CPU::OPCODE CPU::SET_4_L(){ }
-                
-CPU::OPCODE CPU::SET_4_Addr_HL(){ }
-                
-CPU::OPCODE CPU::SET_4_A(){ }
-                
-CPU::OPCODE CPU::SET_5_B(){ }
-                
-CPU::OPCODE CPU::SET_5_C(){ }
-                
-CPU::OPCODE CPU::SET_5_D(){ }
-                
-CPU::OPCODE CPU::SET_5_E(){ }
-                
-CPU::OPCODE CPU::SET_5_H(){ }
-                
-CPU::OPCODE CPU::SET_5_L(){ }
-                
-CPU::OPCODE CPU::SET_5_Addr_HL(){ }
-                
-CPU::OPCODE CPU::SET_5_A(){ }
-    /* Sixteenth Row*/
-                
-CPU::OPCODE CPU::SET_6_B(){ }
-                
-CPU::OPCODE CPU::SET_6_C(){ }
-                
-CPU::OPCODE CPU::SET_6_D(){ }
-                
-CPU::OPCODE CPU::SET_6_E(){ }
-                
-CPU::OPCODE CPU::SET_6_H(){ }
-                
-CPU::OPCODE CPU::SET_6_L(){ }
-                
-CPU::OPCODE CPU::SET_6_Addr_HL(){ }
-                
-CPU::OPCODE CPU::SET_6_A(){ }
-                
-CPU::OPCODE CPU::SET_7_B(){ }
-                
-CPU::OPCODE CPU::SET_7_C(){ }
-                
-CPU::OPCODE CPU::SET_7_D(){ }
-                
-CPU::OPCODE CPU::SET_7_E(){ }
-                
-CPU::OPCODE CPU::SET_7_H(){ }
-                
-CPU::OPCODE CPU::SET_7_L(){ }
-                
-CPU::OPCODE CPU::SET_7_Addr_HL(){ }
-                
-CPU::OPCODE CPU::SET_7_A() { }
+
+CPU::OPCODE CPU::SET_0_B() {
+    return SET_u3_REG8(0, regs.bc.B);
+}
+CPU::OPCODE CPU::SET_0_C() {
+    return SET_u3_REG8(0, regs.bc.C);
+}
+CPU::OPCODE CPU::SET_0_D() {
+    return SET_u3_REG8(0, regs.de.D);
+}
+CPU::OPCODE CPU::SET_0_E() {
+    return SET_u3_REG8(0, regs.de.E);
+}
+CPU::OPCODE CPU::SET_0_H() {
+    return SET_u3_REG8(0, regs.hl.H);
+}
+CPU::OPCODE CPU::SET_0_L() {
+    return SET_u3_REG8(0, regs.hl.L);
+}
+CPU::OPCODE CPU::SET_0_Addr_HL() {
+    return SET_u3_Addr_REG16(0, regs.hl.HL);
+}
+CPU::OPCODE CPU::SET_0_A() {
+    return SET_u3_REG8(0, regs.af.A);
+}
+CPU::OPCODE CPU::SET_1_B() {
+    return SET_u3_REG8(1, regs.bc.B);
+}
+CPU::OPCODE CPU::SET_1_C() {
+    return SET_u3_REG8(1, regs.bc.C);
+}
+CPU::OPCODE CPU::SET_1_D() {
+    return SET_u3_REG8(1, regs.de.D);
+}
+CPU::OPCODE CPU::SET_1_E() {
+    return SET_u3_REG8(1, regs.de.E);
+}
+CPU::OPCODE CPU::SET_1_H() {
+    return SET_u3_REG8(1, regs.hl.H);
+}
+CPU::OPCODE CPU::SET_1_L() {
+    return SET_u3_REG8(1, regs.hl.L);
+}
+CPU::OPCODE CPU::SET_1_Addr_HL() {
+    return SET_u3_Addr_REG16(1, regs.hl.HL);
+}
+CPU::OPCODE CPU::SET_1_A() {
+    return SET_u3_REG8(1, regs.af.A);
+}
+CPU::OPCODE CPU::SET_2_B() {
+    return SET_u3_REG8(2, regs.bc.B);
+}
+CPU::OPCODE CPU::SET_2_C() {
+    return SET_u3_REG8(2, regs.bc.C);
+}
+CPU::OPCODE CPU::SET_2_D() {
+    return SET_u3_REG8(2, regs.de.D);
+}
+CPU::OPCODE CPU::SET_2_E() {
+    return SET_u3_REG8(2, regs.de.E);
+}
+CPU::OPCODE CPU::SET_2_H() {
+    return SET_u3_REG8(2, regs.hl.H);
+}
+CPU::OPCODE CPU::SET_2_L() {
+    return SET_u3_REG8(2, regs.hl.L);
+}
+CPU::OPCODE CPU::SET_2_Addr_HL() {
+    return SET_u3_Addr_REG16(2, regs.hl.HL);
+}
+CPU::OPCODE CPU::SET_2_A() {
+    return SET_u3_REG8(2, regs.af.A);
+}
+CPU::OPCODE CPU::SET_3_B() {
+    return SET_u3_REG8(3, regs.bc.B);
+}
+CPU::OPCODE CPU::SET_3_C() {
+    return SET_u3_REG8(3, regs.bc.C);
+}
+CPU::OPCODE CPU::SET_3_D() {
+    return SET_u3_REG8(3, regs.de.D);
+}
+CPU::OPCODE CPU::SET_3_E() {
+    return SET_u3_REG8(3, regs.de.E);
+}
+CPU::OPCODE CPU::SET_3_H() {
+    return SET_u3_REG8(3, regs.hl.H);
+}
+CPU::OPCODE CPU::SET_3_L() {
+    return SET_u3_REG8(3, regs.hl.L);
+}
+CPU::OPCODE CPU::SET_3_Addr_HL() {
+    return SET_u3_Addr_REG16(3, regs.hl.HL);
+}
+CPU::OPCODE CPU::SET_3_A() {
+    return SET_u3_REG8(3, regs.af.A);
+}
+CPU::OPCODE CPU::SET_4_B() {
+    return SET_u3_REG8(4, regs.bc.B);
+}
+CPU::OPCODE CPU::SET_4_C() {
+    return SET_u3_REG8(4, regs.bc.C);
+}
+CPU::OPCODE CPU::SET_4_D() {
+    return SET_u3_REG8(4, regs.de.D);
+}
+CPU::OPCODE CPU::SET_4_E() {
+    return SET_u3_REG8(4, regs.de.E);
+}
+CPU::OPCODE CPU::SET_4_H() {
+    return SET_u3_REG8(4, regs.hl.H);
+}
+CPU::OPCODE CPU::SET_4_L() {
+    return SET_u3_REG8(4, regs.hl.L);
+}
+CPU::OPCODE CPU::SET_4_Addr_HL() {
+    return SET_u3_Addr_REG16(4, regs.hl.HL);
+}
+CPU::OPCODE CPU::SET_4_A() {
+    return SET_u3_REG8(4, regs.af.A);
+}
+CPU::OPCODE CPU::SET_5_B() {
+    return SET_u3_REG8(5, regs.bc.B);
+}
+CPU::OPCODE CPU::SET_5_C() {
+    return SET_u3_REG8(5, regs.bc.C);
+}
+CPU::OPCODE CPU::SET_5_D() {
+    return SET_u3_REG8(5, regs.de.D);
+}
+CPU::OPCODE CPU::SET_5_E() {
+    return SET_u3_REG8(5, regs.de.E);
+}
+CPU::OPCODE CPU::SET_5_H() {
+    return SET_u3_REG8(5, regs.hl.H);
+}
+CPU::OPCODE CPU::SET_5_L() {
+    return SET_u3_REG8(5, regs.hl.L);
+}
+CPU::OPCODE CPU::SET_5_Addr_HL() {
+    return SET_u3_Addr_REG16(5, regs.hl.HL);
+}
+CPU::OPCODE CPU::SET_5_A() {
+    return SET_u3_REG8(5, regs.af.A);
+}
+CPU::OPCODE CPU::SET_6_B() {
+    return SET_u3_REG8(6, regs.bc.B);
+}
+CPU::OPCODE CPU::SET_6_C() {
+    return SET_u3_REG8(6, regs.bc.C);
+}
+CPU::OPCODE CPU::SET_6_D() {
+    return SET_u3_REG8(6, regs.de.D);
+}
+CPU::OPCODE CPU::SET_6_E() {
+    return SET_u3_REG8(6, regs.de.E);
+}
+CPU::OPCODE CPU::SET_6_H() {
+    return SET_u3_REG8(6, regs.hl.H);
+}
+CPU::OPCODE CPU::SET_6_L() {
+    return SET_u3_REG8(6, regs.hl.L);
+}
+CPU::OPCODE CPU::SET_6_Addr_HL() {
+    return SET_u3_Addr_REG16(6, regs.hl.HL);
+}
+CPU::OPCODE CPU::SET_6_A() {
+    return SET_u3_REG8(6, regs.af.A);
+}
+CPU::OPCODE CPU::SET_7_B() {
+    return SET_u3_REG8(7, regs.bc.B);
+}
+CPU::OPCODE CPU::SET_7_C() {
+    return SET_u3_REG8(7, regs.bc.C);
+}
+CPU::OPCODE CPU::SET_7_D() {
+    return SET_u3_REG8(7, regs.de.D);
+}
+CPU::OPCODE CPU::SET_7_E() {
+    return SET_u3_REG8(7, regs.de.E);
+}
+CPU::OPCODE CPU::SET_7_H() {
+    return SET_u3_REG8(7, regs.hl.H);
+}
+CPU::OPCODE CPU::SET_7_L() {
+    return SET_u3_REG8(7, regs.hl.L);
+}
+CPU::OPCODE CPU::SET_7_Addr_HL() {
+    return SET_u3_Addr_REG16(7, regs.hl.HL);
+}
+CPU::OPCODE CPU::SET_7_A() {
+    return SET_u3_REG8(7, regs.af.A);
+}

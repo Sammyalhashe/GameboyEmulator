@@ -1,4 +1,4 @@
-FUNC = "RES"
+FUNC = "SET"
 BIT = True
 COMMENT = False
 

@@ -245,6 +245,8 @@ private: //OPCODES
     int SRL_Addr_REG16(const uint16_t& REG);
     int RES_u3_REG8(int u3, uint8_t& REG);
     int RES_u3_Addr_REG16(int u3, const uint16_t& REG);
+    int SET_u3_REG8(int u3, uint8_t& REG);
+    int SET_u3_Addr_REG16(int u3, const uint16_t& REG);
 
     /** Helper functions to read memory **/
     uint16_t ReadNn();
