@@ -27,18 +27,21 @@
 ** DONE Finish up Resources Used Table
    CLOSED: [2020-02-23 Sun 00:28] DEADLINE: <2020-02-16 Sun>
 
-*** TODO Unprefixed [3/3] [100%]
+*** DONE Unprefixed [3/3] [100%]
     DEADLINE: <2020-03-07 Sat>
     - [X] Header definitions
     - [X] StepCPU mappings
     - [X] Implementations
 
-*** TODO Prefixed [1/2] [50%]
+*** DONE Prefixed [3/3] [100%]
     DEADLINE: <2020-03-28 Sat>
     - [X] Header definitions
-    - [ ] StepCPU Mappings
-    - [ ] Implementations
+    - [X] StepCPU Mappings
+    - [X] Implementations
 
+** TODO CPU Testing [0%]
+*** [ ] Reasearch best way to test CPU functionality
+*** [ ] Actually test (?)
 * Components
 - Bus interface
 - CPU
