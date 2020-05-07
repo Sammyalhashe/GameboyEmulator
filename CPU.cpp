@@ -824,6 +824,7 @@ int CPU::SET_u3_Addr_REG16(int u3, const uint16_t &REG) {
             printf("SET_u3_Addr_REG16 ::  Bit %d not allowed", u3);
             std::exit(EXIT_FAILURE);
     }
+    WRITE(REG, byte);
     return 4;
 }
 /*
