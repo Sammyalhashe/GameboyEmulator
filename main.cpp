@@ -2,10 +2,25 @@
 
 #include <cstdint>
 #include "CPU.h"
+#include "Bus.h"
 
 #define HAS_HALF_CARRY_8(n1, n2) (((n1 & 0x0Fu) + (n2 & 0x0Fu)) > 0x0F)
+
+#define TESTING false
+
+void tester(CPU cpu);
+
 int main() {
     CPU cpu;
+    Bus bus;
+#if TESTING == true
+    tester(cpu);
+#endif
+    bus.run();
+    return 0;
+}
+
+void tester(CPU cpu) {
     cpu.regs.af.AF = 0x0fe0;
     printf("0x%02x 0x%02x 0x%04x\n", cpu.regs.af.A, cpu.regs.af.F, cpu.regs.af.AF);
     cpu.regs.af.A = 0xbb;
@@ -53,5 +68,4 @@ int main() {
     asdf = HAS_HALF_CARRY_8(cpu.regs.af.AF, -0x02u);
     cpu.regs.af.F -= 0x02u;
     printf("new F: 0x%02x ,new AF: 0x%04x, HC? %d\n", cpu.regs.af.F, cpu.regs.af.AF, asdf);
-    return 0;
 }

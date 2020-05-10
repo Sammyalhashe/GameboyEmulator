@@ -14,6 +14,19 @@ using std::uint16_t;
 #define INTERRUPT_FLAG_REG 0xFF0F
 // This register stores all the interrupts that will be handled, once flagged in INTERRUPT_FLAG_REG
 #define INTERRUPT_ENABLE_REG 0xFFFF
+// Interrupts Bit locations in IF and IE:
+#define VBLANK_RQ 0x01u
+#define LCD_STAT_RQ 0x02u
+#define TIMER_RQ 0x04u
+#define SERIAL_RQ 0x08u
+#define JOYPAD_RQ 0x10u
+
+// Interrupt memory jump locations:
+#define VBLANK 0x0040u
+#define LCD_STAT 0x0048u
+#define TIMER 0x0050u
+#define SERIAL 0x0058u
+#define JOYPAD 0x0060u
 // This is a special instruction that tells the cpu to look into a separate OPCODE table.
 #define PREFIX 0xCB
 
@@ -43,7 +56,7 @@ using std::uint16_t;
 // NOTE: params are (firstVal, secondVal)
 #define HAS_HALF_CARRY(nn1, nn2) (((((nn1) & 0x0FFFu) + ((nn2) + 0x0FFFu)) > 0x0FFF))
 // NOTE: params are (firstVal, secondVal)
-#define HAS_HALF_CARRY_8(n1, n2) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu)) > 0x0F)
+#define HAS_HALF_CARRY_8(n1, n2) ((uint8_t)(((n1) & 0x0Fu) + ((n2) & 0x0Fu)) > 0x0Fu)
 // NOTE: params are (firstVal, secondVal, carry flag)
 #define HAS_HALF_CARRY_8c(n1, n2, c) ((((n1) & 0x0Fu) + ((n2) & 0x0Fu) + c) > 0x0F)
 // NOTE: I have to check again whether this is what they mean with the Half carry condition
@@ -59,9 +72,53 @@ using std::uint16_t;
 #define IS_ZERO_8(n) ((n) == 0)
 
 
+#define PRINTREG8(SREG, REG) printf("%d: 0x%02x\n", SREG, REG)
+#define PRINTREG8s(SREG, REG) printf("%s: 0x%02x ", SREG, REG)
+#define PRINTREG16(SREG, REG) printf("%s: 0x%04x ", SREG, REG)
+#define PRINTHEX(s) printf("0x%02x", s)
+#define NEWLINE printf("%s", "\n")
+
+
 CPU::CPU() = default;
 
 CPU::~CPU()=default;
+
+void CPU::printSummary() {
+    // print regs
+    dumpRegs();
+
+    // print flags
+    dumpFlags();
+
+    // dump stack
+    dumpStack();
+
+}
+
+void CPU::dumpRegs() const {
+    PRINTREG16("AF", regs.af.AF);
+    PRINTREG16("BC", regs.bc.BC);
+    PRINTREG16("DE", regs.de.DE);
+    PRINTREG16("HL", regs.hl.HL);
+    NEWLINE;
+}
+
+void CPU::dumpFlags() const {
+    PRINTREG8s("Z", (bool)(regs.af.F & 0x80u));
+    PRINTREG8s("N", (bool)(regs.af.F & 0x60u));
+    PRINTREG8s("H", (bool)(regs.af.F & 0x40u));
+    PRINTREG8s("C", (bool)(regs.af.F & 0x20u));
+    NEWLINE;
+}
+
+void CPU::dumpStack() {
+    printf("0x%04x\n", regs.sp);
+    for (uint16_t i = 0xCFFFu; i >= regs.sp; i--) {
+        PRINTHEX(READ(i));
+    }
+    NEWLINE;
+}
+
 uint8_t CPU::READ(u_int16_t addr, bool read_only)
 {
     // check for range validity occurs within bus implementation
@@ -908,6 +965,40 @@ int CPU::RR_Addr_REG16(const uint16_t& REG) {
 }
 
 /*
+ * Rotate REG right.
+ * Summary: [0] -> [7 -> 0] -> C
+ * 2 cycles
+ * Z if result is zero, N unset, H unset, C set according to the result
+ */
+int CPU::RRC_REG(uint8_t &REG) {
+    auto c = (uint8_t)(REG & 0x01u); // either 0x00 or 0x01
+    REG = (uint8_t)(REG >> 1u) | (uint8_t)(c << 7u);
+    SetFlag(Z, IS_ZERO_8(REG));
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, c);
+    return 2;
+}
+
+/*
+ * Rotate byte pointed to by REG16 right
+ * Summary: [0] -> [7 -> 0] -> C
+ * 2 cycles
+ * Z if result is zero, N unset, H unset, C set according to the result
+ */
+int CPU::RRC_Addr_REG16(const uint16_t &REG) {
+    uint8_t byte = READ(REG);
+    auto c = (uint8_t)(byte & 0x01u); // either 0x00 or 0x01
+    byte = (uint8_t)(byte >> 1u) | (uint8_t)(c << 7u);
+    WRITE(REG, byte);
+    SetFlag(Z, IS_ZERO_8(byte));
+    SetFlag(N, false);
+    SetFlag(H, false);
+    SetFlag(C, c);
+    return 4;
+}
+
+/*
  * Shift left arithmetic register REG
  * Summary: C <- [7 <- 0] <- 0
  * 2 cycles
@@ -1304,7 +1395,7 @@ int CPU::stepCPU() {
             return LD_L_Addr_HL();
         case 0x6F:
             return LD_L_A();
-            /* Eigth Row*/
+            /* Eighth Row*/
         case 0x70:
             return LD_Addr_HL_B();
         case 0x71:
@@ -2140,15 +2231,71 @@ void CPU::handleCycles(int c) {
 }
 
 void CPU::handleInterrupts() {
+    // NOTE: This is for keeping track of how many cycles after EI occurs where interrupts are enabled
+    if (interrupts_cycles_left_to_enabled != 0 && --interrupts_cycles_left_to_enabled == 0) {
+        interrupts_enabled = true;
+    }
     if (interrupts_enabled) {
-        if (READ(INTERRUPT_FLAG_REG) && READ(INTERRUPT_ENABLE_REG)) {
+        if (READ(INTERRUPT_FLAG_REG) & READ(INTERRUPT_ENABLE_REG)) {
             // TODO: handle different interrupts here ie. VBLANK
+            // NOTE: Interrupts are written in order of their priority
+            // RECALL: AND is associative
+
+            // VBLANK Interrupt
+            if ((READ(INTERRUPT_FLAG_REG) & VBLANK_RQ) & (READ(INTERRUPT_ENABLE_REG) & VBLANK_RQ)) {
+                // push the PC to stack
+                pushToStack(regs.pc);
+                // jump to the appropriate Interrupt vector
+                regs.pc = VBLANK;
+                // "Turn off" the interrupt -> says we have handled it
+                WRITE(INTERRUPT_FLAG_REG, READ(INTERRUPT_FLAG_REG) & ~(VBLANK_RQ));
+            }
+
+            // LCD STAT Interrupt
+            if ((READ(INTERRUPT_FLAG_REG) & LCD_STAT_RQ) & (READ(INTERRUPT_ENABLE_REG) & LCD_STAT_RQ)) {
+                // push the PC to stack
+                pushToStack(regs.pc);
+                // jump to the appropriate Interrupt vector
+                regs.pc = LCD_STAT;
+                // "Turn off" the interrupt -> says we have handled it
+                WRITE(INTERRUPT_FLAG_REG, READ(INTERRUPT_FLAG_REG) & ~(LCD_STAT_RQ));
+            }
+
+            // TIMER Interrupt
+            if ((READ(INTERRUPT_FLAG_REG) & TIMER_RQ) & (READ(INTERRUPT_ENABLE_REG) & TIMER_RQ)) {
+                // push the PC to stack
+                pushToStack(regs.pc);
+                // jump to the appropriate Interrupt vector
+                regs.pc = TIMER;
+                // "Turn off" the interrupt -> says we have handled it
+                WRITE(INTERRUPT_FLAG_REG, READ(INTERRUPT_FLAG_REG) & ~(TIMER_RQ));
+            }
+
+            // Serial Interrupt
+            if ((READ(INTERRUPT_FLAG_REG) & SERIAL_RQ) & (READ(INTERRUPT_ENABLE_REG) & SERIAL_RQ)) {
+                // push the PC to stack
+                pushToStack(regs.pc);
+                // jump to the appropriate Interrupt vector
+                regs.pc = SERIAL;
+                // "Turn off" the interrupt -> says we have handled it
+                WRITE(INTERRUPT_FLAG_REG, READ(INTERRUPT_FLAG_REG) & ~(SERIAL_RQ));
+            }
+
+            // Joy-pad Interrupt
+            if ((READ(INTERRUPT_FLAG_REG) & JOYPAD_RQ) & (READ(INTERRUPT_ENABLE_REG) & JOYPAD_RQ)) {
+                // push the PC to stack
+                pushToStack(regs.pc);
+                // jump to the appropriate Interrupt vector
+                regs.pc = JOYPAD;
+                // "Turn off" the interrupt -> says we have handled it
+                WRITE(INTERRUPT_FLAG_REG, READ(INTERRUPT_FLAG_REG) & ~(JOYPAD_RQ));
+            }
+
         }
     }
 }
 
-/*
- * TODO: Complete OPCODES */
+/* DONE: Complete OPCODES */
 
 // No-op
 CPU::OPCODE CPU::NOP()
@@ -2291,6 +2438,9 @@ CPU::OPCODE CPU::LD_C_n(uint8_t n) {
 // Rotate Right Carry register A
 CPU::OPCODE CPU::RRCA() {
     auto c = (regs.af.A) & 0x01u; // either 0x01 or 0x00
+    SetFlag(Z, false);
+    SetFlag(N, false);
+    SetFlag(H, false);
     SetFlag(C, c);
     regs.af.A = (uint8_t)(regs.af.A >> 1u) | (uint8_t)(c << 7u);
     return 1;
@@ -3784,6 +3934,8 @@ CPU::OPCODE CPU::LD_A_FF00_C() {
 // 1 cycle
 // no flags affected
 CPU::OPCODE CPU::DI() {
+    // TODO: I should confirm that DI does not conform to the same behaviour as EI for interrupts_enabled
+    // I believe it's okay
     interrupts_enabled = false;
     return 1;
 }
@@ -3848,7 +4000,18 @@ CPU::OPCODE CPU::LD_A_Addr_nn(uint16_t nn) {
 // 1 cycle
 // No flags affected
 CPU::OPCODE CPU::EI() {
-    interrupts_enabled = true;
+    /*
+     * interrupts are actually enabled a cycle after this one has completed.
+     * di
+     * ld  a,IEF_TIMER
+     * ld  [rIE],a
+     * ld  [rIF],a
+     * ei
+     * inc a ; This is still executed before jumping to the interrupt vector.
+     * inc a ; This is executed after returning.
+     * ld   [hl+],a
+     */
+    interrupts_cycles_left_to_enabled = 2;
     return 1;
 }
 
@@ -3984,6 +4147,39 @@ CPU::OPCODE CPU::RLC_A() {
 }
 
 // TODO RRC functions
+
+
+CPU::OPCODE CPU::RRC_B() {
+    return RRC_REG(regs.bc.B);
+}
+
+CPU::OPCODE CPU::RRC_C() {
+    return RRC_REG(regs.bc.C);
+}
+
+CPU::OPCODE CPU::RRC_D() {
+    return RRC_REG(regs.de.D);
+}
+
+CPU::OPCODE CPU::RRC_E() {
+    return RRC_REG(regs.de.E);
+}
+
+CPU::OPCODE CPU::RRC_H() {
+    return RRC_REG(regs.hl.H);
+}
+
+CPU::OPCODE CPU::RRC_L() {
+    return RRC_REG(regs.hl.L);
+}
+
+CPU::OPCODE CPU::RRC_Addr_HL() {
+    return RRC_Addr_REG16(regs.hl.HL);
+}
+
+CPU::OPCODE CPU::RRC_A() {
+    return RRC_REG(regs.af.A);
+}
 
     /* Second Row*/
 CPU::OPCODE CPU::RL_B(){

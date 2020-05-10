@@ -19,6 +19,8 @@ class CPU {
 public:
     CPU();
     ~CPU();
+    void printSummary();
+
 
 
 private:
@@ -43,7 +45,7 @@ public:
         // GB registers (8 bits but an be combined for 16-bit operations)
         // AF, BC, DE, HL
         // (a) accumulator, (f) status register, rest are general purpose
-        // (a) reg is where almost all data being processed pasees through
+        // (a) reg is where almost all data being processed passes through
         // It is also the only register that can be complemented, decimal adjusted, or negated.
         // It is also the source AND destination for 8-bit arithmetic operations.
         // (b) & (c) are generally used as counters during repetitive blocks of code (like moving data to somewhere else)
@@ -83,7 +85,7 @@ public:
         DE de;
         HL hl;
         uint8_t a = 0x00, b = 0x00, c = 0x00, d = 0x00, e = 0x00, f = 0x00, h = 0x00, l = 0x00;
-        uint16_t pc = 0x0100; // when the GB starts up, this is the initial value as per gbdev site
+        uint16_t pc = 0x00; // 0x0100; when the GB starts up, this is the initial value as per gbdev site
         // NOTE: the Stack in the Gameboy CPU grows from the top DOWN as per gbdev
         uint16_t sp = 0xFFFE; // when the GB starts up, this is the initial value as per gbdev site
 
@@ -94,12 +96,13 @@ public:
         // u_int32_t r13_abt, r14_abt;                                                     // Abort mode
         // u_int32_t r13_irq, r14_irq;                                                     // IRQ mode
         // u_int32_t r13_und, r14_und;                                                     // Undefined mode
-        uint64_t clkcount; // clk
+        // uint64_t clkcount; // clk
     } REGS;
     typedef int OPCODE; // type alias for OPCODES (for mapping)
     REGS regs;
     bool unpaused = true;
     bool interrupts_enabled = false;
+    int interrupts_cycles_left_to_enabled = 0;
 
 public:
     // connects the CPU to the created Bus
@@ -118,6 +121,10 @@ private:
     // Read from an address in memory (I use a long array - as seems standard - to represent my memory)
     // See implementation in Bus class
     uint8_t READ(u_int16_t addr, bool read_only = false);
+
+    void dumpRegs() const;
+    void dumpFlags() const;
+    void dumpStack();
 
 
 private:
@@ -163,22 +170,22 @@ private: //OPCODES
     /*  F0+  */              OPCODE LD_A_FF00_n(uint8_t n); OPCODE POP_AF();              OPCODE LD_A_FF00_C();         OPCODE DI();               /*         No Mapping        */ OPCODE PUSH_AF();      OPCODE OR_A_n(uint8_t n);       OPCODE RST_30h();      OPCODE LD_HL_SP_i(int8_t i);       OPCODE LD_SP_HL();  OPCODE LD_A_Addr_nn(uint16_t nn); OPCODE EI();              /*       No Mapping         */ /*       No Mapping       */ OPCODE CP_A_n(uint8_t n);  OPCODE RST_38h();
 
     /** Prefixed Table     +0                             +1                            +2                            +3                         +4                              +5                     +6                              +7                     +8                                 +9                  +A                                +B                        +C                             +D                           +E                         +F            **/
-    /*  00+  */              OPCODE RLC_B();                OPCODE RLC_C();               OPCODE RLC_D();               OPCODE RLC_E();            OPCODE RLC_H();                 OPCODE RLC_L();        OPCODE RLC_Addr_HL();           OPCODE RLC_A();        OPCODE RRC_B();                    OPCODE RRC_C();     OPCODE RRC_D();                   OPCODE RRC_E();           OPCODE RRC_H();                OPCODE RRC_L();              OPCODE RRC_Addr_HL();      OPCODE RRC_A();
-    /*  10+  */              OPCODE RL_B();                 OPCODE RL_C();                OPCODE RL_D();                OPCODE RL_E();             OPCODE RL_H();                  OPCODE RL_L();         OPCODE RL_Addr_HL();            OPCODE RL_A();         OPCODE RR_B();                     OPCODE RR_C();      OPCODE RR_D();                    OPCODE RR_E();            OPCODE RR_H();                 OPCODE RR_L();               OPCODE RR_Addr_HL();       OPCODE RR_A();
-    /*  20+  */              OPCODE SLA_B();                OPCODE SLA_C();               OPCODE SLA_D();               OPCODE SLA_E();            OPCODE SLA_H();                 OPCODE SLA_L();        OPCODE SLA_Addr_HL();           OPCODE SLA_A();        OPCODE SRA_B();                    OPCODE SRA_C();     OPCODE SRA_D();                   OPCODE SRA_E();           OPCODE SRA_H();                OPCODE SRA_L();              OPCODE SRA_Addr_HL();      OPCODE SRA_A();
-    /*  30+  */              OPCODE SWAP_B();               OPCODE SWAP_C();              OPCODE SWAP_D();              OPCODE SWAP_E();           OPCODE SWAP_H();                OPCODE SWAP_L();       OPCODE SWAP_Addr_HL();          OPCODE SWAP_A();       OPCODE SRL_B();                    OPCODE SRL_C();     OPCODE SRL_D();                   OPCODE SRL_E();           OPCODE SRL_H();                OPCODE SRL_L();              OPCODE SRL_Addr_HL();      OPCODE SRL_A();
-    /*  40+  */              OPCODE BIT_0_B();              OPCODE BIT_0_C();             OPCODE BIT_0_D();             OPCODE BIT_0_E();          OPCODE BIT_0_H();               OPCODE BIT_0_L();      OPCODE BIT_0_Addr_HL();         OPCODE BIT_0_A();      OPCODE BIT_1_B();                  OPCODE BIT_1_C();   OPCODE BIT_1_D();                 OPCODE BIT_1_E();         OPCODE BIT_1_H();              OPCODE BIT_1_L();            OPCODE BIT_1_Addr_HL();    OPCODE BIT_1_A();
-    /*  50+  */              OPCODE BIT_2_B();              OPCODE BIT_2_C();             OPCODE BIT_2_D();             OPCODE BIT_2_E();          OPCODE BIT_2_H();               OPCODE BIT_2_L();      OPCODE BIT_2_Addr_HL();         OPCODE BIT_2_A();      OPCODE BIT_3_B();                  OPCODE BIT_3_C();   OPCODE BIT_3_D();                 OPCODE BIT_3_E();         OPCODE BIT_3_H();              OPCODE BIT_3_L();            OPCODE BIT_3_Addr_HL();    OPCODE BIT_3_A();
-    /*  60+  */              OPCODE BIT_4_B();              OPCODE BIT_4_C();             OPCODE BIT_4_D();             OPCODE BIT_4_E();          OPCODE BIT_4_H();               OPCODE BIT_4_L();      OPCODE BIT_4_Addr_HL();         OPCODE BIT_4_A();      OPCODE BIT_5_B();                  OPCODE BIT_5_C();   OPCODE BIT_5_D();                 OPCODE BIT_5_E();         OPCODE BIT_5_H();              OPCODE BIT_5_L();            OPCODE BIT_5_Addr_HL();    OPCODE BIT_5_A();
-    /*  70+  */              OPCODE BIT_6_B();              OPCODE BIT_6_C();             OPCODE BIT_6_D();             OPCODE BIT_6_E();          OPCODE BIT_6_H();               OPCODE BIT_6_L();      OPCODE BIT_6_Addr_HL();         OPCODE BIT_6_A();      OPCODE BIT_7_B();                  OPCODE BIT_7_C();   OPCODE BIT_7_D();                 OPCODE BIT_7_E();         OPCODE BIT_7_H();              OPCODE BIT_7_L();            OPCODE BIT_7_Addr_HL();    OPCODE BIT_7_A();
-    /*  80+  */              OPCODE RES_0_B();              OPCODE RES_0_C();             OPCODE RES_0_D();             OPCODE RES_0_E();          OPCODE RES_0_H();               OPCODE RES_0_L();      OPCODE RES_0_Addr_HL();         OPCODE RES_0_A();      OPCODE RES_1_B();                  OPCODE RES_1_C();   OPCODE RES_1_D();                 OPCODE RES_1_E();         OPCODE RES_1_H();              OPCODE RES_1_L();            OPCODE RES_1_Addr_HL();    OPCODE RES_1_A();
-    /*  90+  */              OPCODE RES_2_B();              OPCODE RES_2_C();             OPCODE RES_2_D();             OPCODE RES_2_E();          OPCODE RES_2_H();               OPCODE RES_2_L();      OPCODE RES_2_Addr_HL();         OPCODE RES_2_A();      OPCODE RES_3_B();                  OPCODE RES_3_C();   OPCODE RES_3_D();                 OPCODE RES_3_E();         OPCODE RES_3_H();              OPCODE RES_3_L();            OPCODE RES_3_Addr_HL();    OPCODE RES_3_A();
-    /*  A0+  */              OPCODE RES_4_B();              OPCODE RES_4_C();             OPCODE RES_4_D();             OPCODE RES_4_E();          OPCODE RES_4_H();               OPCODE RES_4_L();      OPCODE RES_4_Addr_HL();         OPCODE RES_4_A();      OPCODE RES_5_B();                  OPCODE RES_5_C();   OPCODE RES_5_D();                 OPCODE RES_5_E();         OPCODE RES_5_H();              OPCODE RES_5_L();            OPCODE RES_5_Addr_HL();    OPCODE RES_5_A();
-    /*  B0+  */              OPCODE RES_6_B();              OPCODE RES_6_C();             OPCODE RES_6_D();             OPCODE RES_6_E();          OPCODE RES_6_H();               OPCODE RES_6_L();      OPCODE RES_6_Addr_HL();         OPCODE RES_6_A();      OPCODE RES_7_B();                  OPCODE RES_7_C();   OPCODE RES_7_D();                 OPCODE RES_7_E();         OPCODE RES_7_H();              OPCODE RES_7_L();            OPCODE RES_7_Addr_HL();    OPCODE RES_7_A();
-    /*  C0+  */              OPCODE SET_0_B();              OPCODE SET_0_C();             OPCODE SET_0_D();             OPCODE SET_0_E();          OPCODE SET_0_H();               OPCODE SET_0_L();      OPCODE SET_0_Addr_HL();         OPCODE SET_0_A();      OPCODE SET_1_B();                  OPCODE SET_1_C();   OPCODE SET_1_D();                 OPCODE SET_1_E();         OPCODE SET_1_H();              OPCODE SET_1_L();            OPCODE SET_1_Addr_HL();    OPCODE SET_1_A();
-    /*  D0+  */              OPCODE SET_2_B();              OPCODE SET_2_C();             OPCODE SET_2_D();             OPCODE SET_2_E();          OPCODE SET_2_H();               OPCODE SET_2_L();      OPCODE SET_2_Addr_HL();         OPCODE SET_2_A();      OPCODE SET_3_B();                  OPCODE SET_3_C();   OPCODE SET_3_D();                 OPCODE SET_3_E();         OPCODE SET_3_H();              OPCODE SET_3_L();            OPCODE SET_3_Addr_HL();    OPCODE SET_3_A();
-    /*  E0+  */              OPCODE SET_4_B();              OPCODE SET_4_C();             OPCODE SET_4_D();             OPCODE SET_4_E();          OPCODE SET_4_H();               OPCODE SET_4_L();      OPCODE SET_4_Addr_HL();         OPCODE SET_4_A();      OPCODE SET_5_B();                  OPCODE SET_5_C();   OPCODE SET_5_D();                 OPCODE SET_5_E();         OPCODE SET_5_H();              OPCODE SET_5_L();            OPCODE SET_5_Addr_HL();    OPCODE SET_5_A();
-    /*  F0+  */              OPCODE SET_6_B();              OPCODE SET_6_C();             OPCODE SET_6_D();             OPCODE SET_6_E();          OPCODE SET_6_H();               OPCODE SET_6_L();      OPCODE SET_6_Addr_HL();         OPCODE SET_6_A();      OPCODE SET_7_B();                  OPCODE SET_7_C();   OPCODE SET_7_D();                 OPCODE SET_7_E();         OPCODE SET_7_H();              OPCODE SET_7_L();            OPCODE SET_7_Addr_HL();    OPCODE SET_7_A();
+    /*  00+  */            OPCODE RLC_B();                OPCODE RLC_C();               OPCODE RLC_D();               OPCODE RLC_E();            OPCODE RLC_H();                 OPCODE RLC_L();        OPCODE RLC_Addr_HL();           OPCODE RLC_A();        OPCODE RRC_B();                    OPCODE RRC_C();     OPCODE RRC_D();                   OPCODE RRC_E();           OPCODE RRC_H();                OPCODE RRC_L();              OPCODE RRC_Addr_HL();      OPCODE RRC_A();
+    /*  10+  */            OPCODE RL_B();                 OPCODE RL_C();                OPCODE RL_D();                OPCODE RL_E();             OPCODE RL_H();                  OPCODE RL_L();         OPCODE RL_Addr_HL();            OPCODE RL_A();         OPCODE RR_B();                     OPCODE RR_C();      OPCODE RR_D();                    OPCODE RR_E();            OPCODE RR_H();                 OPCODE RR_L();               OPCODE RR_Addr_HL();       OPCODE RR_A();
+    /*  20+  */            OPCODE SLA_B();                OPCODE SLA_C();               OPCODE SLA_D();               OPCODE SLA_E();            OPCODE SLA_H();                 OPCODE SLA_L();        OPCODE SLA_Addr_HL();           OPCODE SLA_A();        OPCODE SRA_B();                    OPCODE SRA_C();     OPCODE SRA_D();                   OPCODE SRA_E();           OPCODE SRA_H();                OPCODE SRA_L();              OPCODE SRA_Addr_HL();      OPCODE SRA_A();
+    /*  30+  */            OPCODE SWAP_B();               OPCODE SWAP_C();              OPCODE SWAP_D();              OPCODE SWAP_E();           OPCODE SWAP_H();                OPCODE SWAP_L();       OPCODE SWAP_Addr_HL();          OPCODE SWAP_A();       OPCODE SRL_B();                    OPCODE SRL_C();     OPCODE SRL_D();                   OPCODE SRL_E();           OPCODE SRL_H();                OPCODE SRL_L();              OPCODE SRL_Addr_HL();      OPCODE SRL_A();
+    /*  40+  */            OPCODE BIT_0_B();              OPCODE BIT_0_C();             OPCODE BIT_0_D();             OPCODE BIT_0_E();          OPCODE BIT_0_H();               OPCODE BIT_0_L();      OPCODE BIT_0_Addr_HL();         OPCODE BIT_0_A();      OPCODE BIT_1_B();                  OPCODE BIT_1_C();   OPCODE BIT_1_D();                 OPCODE BIT_1_E();         OPCODE BIT_1_H();              OPCODE BIT_1_L();            OPCODE BIT_1_Addr_HL();    OPCODE BIT_1_A();
+    /*  50+  */            OPCODE BIT_2_B();              OPCODE BIT_2_C();             OPCODE BIT_2_D();             OPCODE BIT_2_E();          OPCODE BIT_2_H();               OPCODE BIT_2_L();      OPCODE BIT_2_Addr_HL();         OPCODE BIT_2_A();      OPCODE BIT_3_B();                  OPCODE BIT_3_C();   OPCODE BIT_3_D();                 OPCODE BIT_3_E();         OPCODE BIT_3_H();              OPCODE BIT_3_L();            OPCODE BIT_3_Addr_HL();    OPCODE BIT_3_A();
+    /*  60+  */            OPCODE BIT_4_B();              OPCODE BIT_4_C();             OPCODE BIT_4_D();             OPCODE BIT_4_E();          OPCODE BIT_4_H();               OPCODE BIT_4_L();      OPCODE BIT_4_Addr_HL();         OPCODE BIT_4_A();      OPCODE BIT_5_B();                  OPCODE BIT_5_C();   OPCODE BIT_5_D();                 OPCODE BIT_5_E();         OPCODE BIT_5_H();              OPCODE BIT_5_L();            OPCODE BIT_5_Addr_HL();    OPCODE BIT_5_A();
+    /*  70+  */            OPCODE BIT_6_B();              OPCODE BIT_6_C();             OPCODE BIT_6_D();             OPCODE BIT_6_E();          OPCODE BIT_6_H();               OPCODE BIT_6_L();      OPCODE BIT_6_Addr_HL();         OPCODE BIT_6_A();      OPCODE BIT_7_B();                  OPCODE BIT_7_C();   OPCODE BIT_7_D();                 OPCODE BIT_7_E();         OPCODE BIT_7_H();              OPCODE BIT_7_L();            OPCODE BIT_7_Addr_HL();    OPCODE BIT_7_A();
+    /*  80+  */            OPCODE RES_0_B();              OPCODE RES_0_C();             OPCODE RES_0_D();             OPCODE RES_0_E();          OPCODE RES_0_H();               OPCODE RES_0_L();      OPCODE RES_0_Addr_HL();         OPCODE RES_0_A();      OPCODE RES_1_B();                  OPCODE RES_1_C();   OPCODE RES_1_D();                 OPCODE RES_1_E();         OPCODE RES_1_H();              OPCODE RES_1_L();            OPCODE RES_1_Addr_HL();    OPCODE RES_1_A();
+    /*  90+  */            OPCODE RES_2_B();              OPCODE RES_2_C();             OPCODE RES_2_D();             OPCODE RES_2_E();          OPCODE RES_2_H();               OPCODE RES_2_L();      OPCODE RES_2_Addr_HL();         OPCODE RES_2_A();      OPCODE RES_3_B();                  OPCODE RES_3_C();   OPCODE RES_3_D();                 OPCODE RES_3_E();         OPCODE RES_3_H();              OPCODE RES_3_L();            OPCODE RES_3_Addr_HL();    OPCODE RES_3_A();
+    /*  A0+  */            OPCODE RES_4_B();              OPCODE RES_4_C();             OPCODE RES_4_D();             OPCODE RES_4_E();          OPCODE RES_4_H();               OPCODE RES_4_L();      OPCODE RES_4_Addr_HL();         OPCODE RES_4_A();      OPCODE RES_5_B();                  OPCODE RES_5_C();   OPCODE RES_5_D();                 OPCODE RES_5_E();         OPCODE RES_5_H();              OPCODE RES_5_L();            OPCODE RES_5_Addr_HL();    OPCODE RES_5_A();
+    /*  B0+  */            OPCODE RES_6_B();              OPCODE RES_6_C();             OPCODE RES_6_D();             OPCODE RES_6_E();          OPCODE RES_6_H();               OPCODE RES_6_L();      OPCODE RES_6_Addr_HL();         OPCODE RES_6_A();      OPCODE RES_7_B();                  OPCODE RES_7_C();   OPCODE RES_7_D();                 OPCODE RES_7_E();         OPCODE RES_7_H();              OPCODE RES_7_L();            OPCODE RES_7_Addr_HL();    OPCODE RES_7_A();
+    /*  C0+  */            OPCODE SET_0_B();              OPCODE SET_0_C();             OPCODE SET_0_D();             OPCODE SET_0_E();          OPCODE SET_0_H();               OPCODE SET_0_L();      OPCODE SET_0_Addr_HL();         OPCODE SET_0_A();      OPCODE SET_1_B();                  OPCODE SET_1_C();   OPCODE SET_1_D();                 OPCODE SET_1_E();         OPCODE SET_1_H();              OPCODE SET_1_L();            OPCODE SET_1_Addr_HL();    OPCODE SET_1_A();
+    /*  D0+  */            OPCODE SET_2_B();              OPCODE SET_2_C();             OPCODE SET_2_D();             OPCODE SET_2_E();          OPCODE SET_2_H();               OPCODE SET_2_L();      OPCODE SET_2_Addr_HL();         OPCODE SET_2_A();      OPCODE SET_3_B();                  OPCODE SET_3_C();   OPCODE SET_3_D();                 OPCODE SET_3_E();         OPCODE SET_3_H();              OPCODE SET_3_L();            OPCODE SET_3_Addr_HL();    OPCODE SET_3_A();
+    /*  E0+  */            OPCODE SET_4_B();              OPCODE SET_4_C();             OPCODE SET_4_D();             OPCODE SET_4_E();          OPCODE SET_4_H();               OPCODE SET_4_L();      OPCODE SET_4_Addr_HL();         OPCODE SET_4_A();      OPCODE SET_5_B();                  OPCODE SET_5_C();   OPCODE SET_5_D();                 OPCODE SET_5_E();         OPCODE SET_5_H();              OPCODE SET_5_L();            OPCODE SET_5_Addr_HL();    OPCODE SET_5_A();
+    /*  F0+  */            OPCODE SET_6_B();              OPCODE SET_6_C();             OPCODE SET_6_D();             OPCODE SET_6_E();          OPCODE SET_6_H();               OPCODE SET_6_L();      OPCODE SET_6_Addr_HL();         OPCODE SET_6_A();      OPCODE SET_7_B();                  OPCODE SET_7_C();   OPCODE SET_7_D();                 OPCODE SET_7_E();         OPCODE SET_7_H();              OPCODE SET_7_L();            OPCODE SET_7_Addr_HL();    OPCODE SET_7_A();
 
     // Increment register (8-bit/1-byte)
     // Z affected, N unset, H affected
@@ -237,6 +244,8 @@ private: //OPCODES
     int BIT_u3_Addr_HL(int u3);
     int RL_REG(uint8_t& REG);
     int RL_Addr_REG16(const uint16_t& REG);
+    int RRC_REG(uint8_t& REG);
+    int RRC_Addr_REG16(const uint16_t& REG);
     int RR_REG(uint8_t& REG);
     int RR_Addr_REG16(const uint16_t& REG);
     int SLA_REG(uint8_t& REG);
