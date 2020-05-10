@@ -164,13 +164,14 @@ int CPU::POP_REG(uint16_t& REG) {
 /**
  * Jump to address nn if condition CC is met.
  * No flags affected
- * TODO: w/wo interrupts: 4/3 cycles
+ * DONE: w/wo interrupts: 4/3 cycles
  */
 int CPU::JP_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
     // CC = true; GetFlag should be 1
     // CC = false; GetFlag should be 0
     if (CC == GetFlag(FLAG)) {
         regs.pc = nn;
+        return 4;
     }
     return 3;
 }
@@ -180,12 +181,13 @@ int CPU::JP_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
  * This is so RET can pop it later
  * It then executes an implicit JP nn
  * no flags affected
- * TODO: w/wo interrupts 6/3 cycles
+ * DONE: w/wo interrupts 6/3 cycles
  */
 int CPU::CALL_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
     if (CC == GetFlag(FLAG)) {
         pushToStack(regs.pc);
         regs.pc = nn;
+        return 6;
     }
     return 3;
 }
@@ -194,11 +196,12 @@ int CPU::CALL_CC_n16(Z80_FLAGS FLAG, bool CC, uint16_t nn) {
 /**
  * Return from subroutine if condition CC for Z80_FLAG FLAG is met
  * Basically POP PC
- * TODO: w/wo interrupts: 5/2
+ * DONE: w/wo interrupts: 5/2
  */
 int CPU::RET_CC(Z80_FLAGS FLAG, bool CC) {
     if (CC == GetFlag(FLAG)) {
         POP_REG(regs.pc);
+        return 5;
     }
     return 2;
 }
@@ -640,7 +643,7 @@ int CPU::OR_A_Addr_REG16(uint16_t REG) {
  * NOTE: ignore that we are assigning an 8-bit unsigned to a 16-bit one
  * Apparently this is how it is supposed to be.
  * TODO: clarify if the number of cycles is truly supposed to be 4.
- * I saw another resource online claiming it may be 8 (?)
+ * NOTE: I saw another resource online claiming it may be 8 (?)
  */
 int CPU::RST_VEC(uint8_t VEC) {
     pushToStack(regs.pc);
@@ -2237,7 +2240,6 @@ void CPU::handleInterrupts() {
     }
     if (interrupts_enabled) {
         if (READ(INTERRUPT_FLAG_REG) & READ(INTERRUPT_ENABLE_REG)) {
-            // TODO: handle different interrupts here ie. VBLANK
             // NOTE: Interrupts are written in order of their priority
             // RECALL: AND is associative
 
@@ -2589,10 +2591,11 @@ CPU::OPCODE CPU::RRA() {
 
 // Relative jump by adding n to to the current address (PC) if the current condition (NZ=Non-Zero) is met
 // NOTE: this has different timings based on whether there are branches or not
-// TODO: update based on if there is branching
+// DONE: update based on if there is branching (3 with, 2 without)
 CPU::OPCODE CPU::JR_NZ_i(int8_t n) {
     if (!GetFlag(Z)) {
       regs.pc += n;
+      return 3;
     }
     return 2;
 }
@@ -2664,10 +2667,11 @@ CPU::OPCODE CPU::DAA() {
 // Relative jump by adding n to the current address (PC) if the Z (Z flag is
 // set; is zero) NOTE: this has different timings based on whether there are
 // branches or not
-// TODO: update based on if there is branching
+// DONE: update based on if there is branching (3 with, 2 wo)
 CPU::OPCODE CPU::JR_Z_i(int8_t n) {
     if (GetFlag(Z)) {
       regs.pc += n;
+      return 3;
     }
     return 2;
 }
@@ -2730,10 +2734,11 @@ CPU::OPCODE CPU::CPL() {
 
 // Relative jump by signed 8-bit immediate to the current adddress
 // if not carry
-// NOTE: 2 cycles but 3 if branching is enabled
+// NOTE: 2 cycles but 3 if branching is enabled (DONE)
 CPU::OPCODE CPU::JR_NC_i(int8_t n) {
     if (!GetFlag(C)) {
       regs.pc += n;
+      return 3;
     }
     return 2;
 }
@@ -2789,10 +2794,11 @@ CPU::OPCODE CPU::SCF() {
 }
 
 // Relative jump by signed 8-bit immediate if last operation resulted in a Carry set
-// NOTE: if no branching: 2 cycles, else 3
+// NOTE: if no branching: 2 cycles, else 3 (DONE)
 CPU::OPCODE CPU::JR_C_i(int8_t n) {
     if (GetFlag(C)) {
       regs.pc += n;
+      return 3;
     }
     return 2;
 }
@@ -3165,7 +3171,7 @@ CPU::OPCODE CPU::LD_Addr_HL_L() {
 }
 
 // toggle the HALT_FLAG to on
-// TODO: Check if this is the correct operation
+// TODO: Check if this is the correct operation (NOTE: it isn't, this requires some work after interrupts)
 CPU::OPCODE CPU::HALT() {
     HALT_FLAG = true;
     return 1;
@@ -3631,11 +3637,12 @@ CPU::OPCODE CPU::CP_A_A() {
 }
 
 // Pop the next instruction from the stack if the last result was NOT ZERO
-// TODO: When you get to interrupts, you have to update the amount of cycles returned to reflect
+// DONE: When you get to interrupts, you have to update the amount of cycles returned to reflect (5 with, 2 wo)
 // that
 CPU::OPCODE CPU::RET_NZ() {
     if (!GetFlag(Z)) {
         regs.pc = popFromStack();
+        return 5;
     }
     return 2;
 }
@@ -3648,7 +3655,7 @@ CPU::OPCODE CPU::POP_BC() {
 
 // Jump to address nn if NOT ZERO
 // No flags affected
-// TODO: w/wo interrupts 4/3 cycles
+// DONE: w/wo interrupts 4/3 cycles (handled in general function)
 CPU::OPCODE CPU::JP_NZ_nn(uint16_t nn) {
     return JP_CC_n16(Z, false, nn);
 }
@@ -3666,7 +3673,7 @@ CPU::OPCODE CPU::JP_nn(uint16_t nn) {
 // it then executes an implicit JP nn
 // Call address nn if NOT ZERO
 // no flags affected
-// TODO: w/wo interrupts: 6/3 cycles
+// DONE: w/wo interrupts: 6/3 cycles (done in general function)
 CPU::OPCODE CPU::CALL_NZ_nn(uint16_t nn) {
     return CALL_CC_n16(Z, false, nn);
 }
@@ -3689,7 +3696,7 @@ CPU::OPCODE CPU::RST_00h() {
 
 // Return from subroutine IF ZERO
 // Basically POP PC
-// TODO: w/wo interrupts 5/2
+// DONE: w/wo interrupts 5/2 (done in general function)
 CPU::OPCODE CPU::RET_Z() {
     return RET_CC(Z, true);
 }
@@ -3703,7 +3710,7 @@ CPU::OPCODE CPU::RET() {
 }
 
 // Jump to address nn IF ZERO
-// TODO: w/wo interrupts 4/3 cycles
+// DONE: w/wo interrupts 4/3 cycles (done in general function)
 CPU::OPCODE CPU::JP_Z_nn(uint16_t nn) {
     return JP_CC_n16(Z, true, nn);
 }
@@ -3713,7 +3720,7 @@ CPU::OPCODE CPU::JP_Z_nn(uint16_t nn) {
 // it then executes an implicit JP nn
 // Call address nn IF ZERO
 // no flags affected
-// TODO: w/wo interrupts: 6/3 cycles
+// DONE: w/wo interrupts: 6/3 cycles (done in general function)
 CPU::OPCODE CPU::CALL_Z_nn(uint16_t nn) {
     return CALL_CC_n16(Z, true, nn);
 }
@@ -3742,7 +3749,7 @@ CPU::OPCODE CPU::RST_08h() {
 
 // Return from subroutine IF CARRY IS NOT SET
 // Basically POP PC
-// TODO: w/wo interrupts 5/2
+// DONE: w/wo interrupts 5/2 (done in general function)
 CPU::OPCODE CPU::RET_NC() {
     return RET_CC(C, false);
 }
@@ -3755,6 +3762,7 @@ CPU::OPCODE CPU::POP_DE() {
 
 // Jump to address nn if NOT CARRY
 // No flags affected
+// DONE: cycles (4 w/3 wo) handled in general function
 CPU::OPCODE CPU::JP_NC_nn(uint16_t nn) {
     return JP_CC_n16(C, false, nn);
 }
@@ -3762,6 +3770,7 @@ CPU::OPCODE CPU::JP_NC_nn(uint16_t nn) {
 // CALL address nn if NOT CARRY
 // executes an implicit JP nn
 // no flags affected
+// DONE: cycles -> 6 wo/ 3 wo (handled in general function)
 CPU::OPCODE CPU::CALL_NC_nn(uint16_t nn) {
     return CALL_CC_n16(C, false, nn);
 }
@@ -3783,12 +3792,14 @@ CPU::OPCODE CPU::RST_10h() {
 }
 
 // Return from subroutine if Carry is set
+// DONE: cycles (5 w/ 3wo) handled in general function
 CPU::OPCODE CPU::RET_C() {
     return RET_CC(C, true);
 }
 
 // return from subroutine and enable interrupts
 // Equivalent to calling EI then RET
+// TODO: make sure this is correct
 // 4 cycles
 CPU::OPCODE CPU::RETI() {
     EI();
@@ -3796,6 +3807,7 @@ CPU::OPCODE CPU::RETI() {
 }
 
 // Jump to address nn IF CARRY is set
+// DONE: cycles (4 w/ 3wo) handled in general function
 CPU::OPCODE CPU::JP_C_nn(uint16_t nn) {
     return JP_CC_n16(C, true, nn);
 }
@@ -3803,6 +3815,7 @@ CPU::OPCODE CPU::JP_C_nn(uint16_t nn) {
 // CALL address nn if CARRY
 // executes an implicit JP nn
 // no flags affected
+// DONE: cycles (6 w/ 3 wo) (handled in general function)
 CPU::OPCODE CPU::CALL_C_nn(uint16_t nn) {
     return CALL_CC_n16(C, true, nn);
 }
@@ -4029,12 +4042,7 @@ CPU::OPCODE CPU::RST_38h() {
 }
 
 /*--------------------------------------------------- Prefixed Table Below ------------------------------------------------------------*/
-/* TODO:
-   - fill in definitions
-   - add comments
-*/
-    /* First Row*/
-
+/* First Row*/
 
 // Rotate register B left
 // 2 cycles
@@ -4145,9 +4153,6 @@ CPU::OPCODE CPU::RLC_A() {
     SetFlag(H, false);
     return 2;
 }
-
-// TODO RRC functions
-
 
 CPU::OPCODE CPU::RRC_B() {
     return RRC_REG(regs.bc.B);
