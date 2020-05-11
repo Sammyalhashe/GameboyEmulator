@@ -103,6 +103,7 @@ public:
     bool unpaused = true;
     bool interrupts_enabled = false;
     int interrupts_cycles_left_to_enabled = 0;
+    const int CPU_FREQ = 4194304;
 
 public:
     // connects the CPU to the created Bus
@@ -128,7 +129,8 @@ private:
 
 
 private:
-    int  cycles = 0;
+    int cycles = 0;
+    int div_clocksum = 0;
 
     uint8_t GetFlag(Z80_FLAGS f) const;
     void SetFlag(Z80_FLAGS f, bool v);

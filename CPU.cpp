@@ -27,8 +27,16 @@ using std::uint16_t;
 #define TIMER 0x0050u
 #define SERIAL 0x0058u
 #define JOYPAD 0x0060u
+
+
 // This is a special instruction that tells the cpu to look into a separate OPCODE table.
 #define PREFIX 0xCB
+
+// Timer Registers
+#define DIV 0xFF04u
+#define TIMA 0xFF05u
+#define TMA 0xFF06u
+#define TAC 0xFF07u
 
 
 // masks
@@ -2224,17 +2232,81 @@ int CPU::stepCPU() {
     }
 }
 
+/**
+ * The Gameboy subsystem is composed by three timer REGS (TIMA, TMA, TAC)
+ * and the DIV REG (0xFF04).
+ * The DIV REG workds by using an internal system 16-bit counter. This counter increases
+ * each clock (4-clocks per NOP). DIV is the upper 8-bits of the counter.
+ * Thus, it increases every 256 oscillator clocks.
+ * TAC (oxFF07) is the Timer Control Register.
+ * This register enables/disables the timer and sets its frequency.
+ * Bit 2: Timer enable.
+ * Bit 1-0: Main frequency divider
+ * TIMA (0xFF05) is the Timer Counter REG.
+ * This REG holds an 8-bit value that is the timer counter. It increases at a certain freq until
+ * it overflows. When this occurs, the value in TMA is loaded into TIMA and a TIMER interrupt is
+ * requested if the corresponding IE flag is set and IME is set.
+ * TMA (0xff06) if the Timer Modulo REG. The 8-bit value this reg stores is loaded into TIMA when
+ * TIMA overflows
+ */
 void CPU::handleCycles(int c) {
-    // TODO: create a method to handle cycles
-    cycles += c;
-    if (cycles >= 256) {
-        cycles -= 256;
-        // TODO: Flag
+    // TODO make sure this method is correct
+    // set DIV REG
+    div_clocksum += c; // QUESTION why not multiplied by 4?
+    if (div_clocksum >= 256) {
+        div_clocksum -= 256;
+        // DONE increase DIV REG
+        WRITE(DIV, READ(DIV) + 1);
+    }
+
+    // check TAC to see if the timer is enabled
+    // RECALL bit 2 is the enable TIMER bit for TAC
+    if ((READ(TAC) >> 2u) & 0x01u) {
+        // increase counter
+        cycles += c * 4;
+
+        // timer gets incremented at a defined rate, which we set
+        // set frequency for timer
+        // NOTE different than CPU frequency which is 4194304Hz
+        /*
+         * For bits 1-0 of the TAC:
+         * 00: 4096Hz
+         * 01 262144Hz
+         * 10: 65536Hz
+         * 11: 16386Hz
+         */
+        int freq = 4096;
+        if ((READ(TAC) & 0x3u) == 0x01u) {
+            freq = 262144;
+        } else if ((READ(TAC) & 0x3u) == 0x02u) {
+            freq = 65536;
+        } else if ((READ(TAC) & 0x03u) == 0x03u) {
+            freq = 16386;
+        }
+
+
+        // Since the timer increments at a defined frequency which is less
+        // than the CPU, we "catch-up" the timer to the number of clock cycles 
+        // in this way:
+
+        while (cycles >= (CPU_FREQ / freq)) {
+            // increase TIMA
+            WRITE(TIMA, READ(TIMA) + 1);
+
+            // check for TIMA overflow
+            if (READ(TIMA) == 0x00) {
+                // set timer interrupt request (recall this sets the fourth bit to 1 of IF)
+                WRITE(INTERRUPT_FLAG_REG, READ(INTERRUPT_FLAG_REG) | TIMER_RQ);
+                // write TMA to TIMA
+                WRITE(TIMA, READ(TMA));
+            }
+            cycles -= (CPU_FREQ / freq);
+        }
     }
 }
 
 void CPU::handleInterrupts() {
-    // NOTE: This is for keeping track of how many cycles after EI occurs where interrupts are enabled
+    // NOTE This is for keeping track of how many cycles after EI occurs where interrupts are enabled
     if (interrupts_cycles_left_to_enabled != 0 && --interrupts_cycles_left_to_enabled == 0) {
         interrupts_enabled = true;
     }
@@ -3171,7 +3243,9 @@ CPU::OPCODE CPU::LD_Addr_HL_L() {
 }
 
 // toggle the HALT_FLAG to on
-// TODO: Check if this is the correct operation (NOTE: it isn't, this requires some work after interrupts)
+/*
+ * NOTE has different behaviours depending on interrupts_enabled, IE, and IF.
+ */
 CPU::OPCODE CPU::HALT() {
     HALT_FLAG = true;
     return 1;
