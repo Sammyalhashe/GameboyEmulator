@@ -15,11 +15,15 @@ Bus::Bus() {
     // connect the cpu
     cpu.connectBus(this);
 
+    // TODO figure out how to restore the first 256 bytes 
+    // of the cartridge (which is overlayed by the bootROM)
     // load the cartridge
     loadCartridge(0x0000u);
     // load the bootROM into memory
     // the result of this should be the pc at 0x100
+#if TESTING == false
     loadBootROM();
+#endif
 
 
     // run the cpu
@@ -65,6 +69,16 @@ uint16_t Bus::loadCartridge(uint16_t start) {
     return pos;
 }
 
+void Bus::restoreCartridgeFirstPage() {
+    FILE* file = fopen("Resources/cpu_instrs/cpu_instrs.gb", "rb");
+
+    uint16_t pos = 0x0000u;
+    while (pos <= 255 && fread(&RAM[pos], 1, 1, file)) {
+        pos++;
+    }
+    fclose(file);
+}
+
 
 void Bus::run() {
     int cycles;
@@ -97,6 +111,6 @@ void Bus::run() {
         } else {
             break;
         }
-        usleep(1000000);
+        /* usleep(1000000); */
     }
 }
