@@ -3,36 +3,52 @@
 //
 
 #include "Bus.h"
-#include <_stdio.h>
 #include <cstdio>
 #include <unistd.h>
-
-#define TESTING true
+#include <iostream>
 
 Bus::Bus() {
     // set the memory to empty at first
     for (auto &i : RAM) i = 0x00;
     // connect the cpu
     cpu.connectBus(this);
-
-    // TODO figure out how to restore the first 256 bytes 
-    // of the cartridge (which is overlayed by the bootROM)
-    // load the cartridge
-    loadCartridge(0x0000u);
-    // load the bootROM into memory
-    // the result of this should be the pc at 0x100
-#if TESTING == false
-    loadBootROM();
-#endif
-
-
-    // run the cpu
-    run();
 }
 
 Bus::~Bus()=default;
 
+void Bus::init(std::string romPath, bool skipBoot) {
+    loadCartridge(romPath);
+
+    bool bootLoaded = false;
+    if (!skipBoot) {
+        bootLoaded = loadBootROM("DMG_ROM_2_2.bin");
+        if (!bootLoaded) {
+            std::cout << "Warning: Could not load boot ROM. Falling back to skip-boot mode." << std::endl;
+        }
+    }
+
+    if (!bootLoaded || skipBoot) {
+        bootRomEnabled = false;
+        cpu.regs.pc = 0x0100;
+        // Post-boot register values
+        cpu.regs.af.AF = 0x01B0;
+        cpu.regs.bc.BC = 0x0013;
+        cpu.regs.de.DE = 0x00D8;
+        cpu.regs.hl.HL = 0x014D;
+        cpu.regs.sp = 0xFFFE;
+    } else {
+        bootRomEnabled = true;
+        cpu.regs.pc = 0x0000;
+    }
+}
+
 void Bus::WRITE(uint16_t addr, u_int8_t data) {
+    // Handle Boot ROM unmapping
+    if (addr == 0xFF50 && bootRomEnabled && data != 0) {
+        bootRomEnabled = false;
+        return; // The write to 0xFF50 itself isn't stored in RAM usually, but if needed we can fall through
+    }
+
     // write the contents into memory
     // into the correct memory range
     if (addressInRange(addr))
@@ -40,45 +56,47 @@ void Bus::WRITE(uint16_t addr, u_int8_t data) {
 }
 
 uint8_t Bus::READ(uint16_t addr) {
+    // Read from Boot ROM if enabled and in range
+    if (bootRomEnabled && addr < 0x0100) {
+        if (addr < bootRomData.size()) {
+            return bootRomData[addr];
+        }
+        return 0x00;
+    }
+
     if (addressInRange(addr))
         return RAM[addr];
     // If there is an illegal read
     return LOW;
 }
 
-uint16_t Bus::loadBootROM() {
-    FILE* file = fopen("DMG_ROM_2_2.bin", "rb");
-    uint16_t pos = 0;
-    // Read in the bootROM into memory
-    // the first 0x100 instructions (0 - ff) (overlays them until finished executing)
-    while (fread(&RAM[pos], 1, 1, file)) {
-        pos++;
-    }
+bool Bus::loadBootROM(const std::string& path) {
+    FILE* file = fopen(path.c_str(), "rb");
+    if (!file) return false;
+
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    bootRomData.resize(size);
+    size_t read = fread(bootRomData.data(), 1, size, file);
     fclose(file);
-    return pos;
+
+    return read == size;
 }
 
-uint16_t Bus::loadCartridge(uint16_t start) {
-    FILE* file = fopen("Resources/cpu_instrs/cpu_instrs.gb", "rb");
-    uint16_t pos = start;
-
-    while (fread(&RAM[pos], 1, 1, file)) {
-        pos++;
+void Bus::loadCartridge(const std::string& path) {
+    FILE* file = fopen(path.c_str(), "rb");
+    if (!file) {
+        std::cerr << "Failed to load ROM: " << path << std::endl;
+        return;
     }
-    fclose(file);
-    return pos;
-}
 
-void Bus::restoreCartridgeFirstPage() {
-    FILE* file = fopen("Resources/cpu_instrs/cpu_instrs.gb", "rb");
-
-    uint16_t pos = 0x0000u;
-    while (pos <= 255 && fread(&RAM[pos], 1, 1, file)) {
-        pos++;
-    }
+    // Read directly into RAM
+    size_t read = fread(RAM.data(), 1, RAM.size(), file);
+    std::cout << "Loaded " << read << " bytes from ROM into RAM." << std::endl;
     fclose(file);
 }
-
 
 void Bus::run() {
     int cycles;
@@ -99,14 +117,12 @@ void Bus::run() {
 
                 cpu.printSummary();
 
-#if TESTING == true
-                // printf("checking mem 0x%04x\n", 0xff02);
+                // Check for serial output (Blargg's test ROMs write to 0xFF02)
                 if (RAM[0xff02u] == 0x81) {
                     uint8_t c = RAM[0xff01u];
-                    printf("%c\n", c);
+                    printf("%c", c);
                     RAM[0xff02u] = 0x0u;
                 }
-#endif
             }
         } else {
             break;

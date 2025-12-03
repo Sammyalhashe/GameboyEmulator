@@ -4,6 +4,9 @@
 #include <cstdint>
 #include "CPU.h"
 #include <array>
+#include <vector>
+#include <string>
+
 #ifndef NESEMULATOR_BUS_H
 #define NESEMULATOR_BUS_H
 
@@ -21,11 +24,17 @@ public:
     Bus();
     ~Bus();
 
+    // Initialize the bus with ROM loading options
+    void init(std::string romPath, bool skipBoot);
+
 public:
     CPU cpu;
     std::array<uint8_t, 64 * 1024> RAM{};
 
 private:
+    std::vector<uint8_t> bootRomData;
+    bool bootRomEnabled = false;
+
     static const uint16_t LOW = 0x0000; // NOTE: GB boots up with PC at 0x0100
     static const uint16_t HI = 0xFFFF;
     static bool addressInRange(uint16_t addr) {
@@ -33,8 +42,8 @@ private:
     }
 
 private:
-    uint16_t loadBootROM();
-    uint16_t loadCartridge(uint16_t start);
+    bool loadBootROM(const std::string& path);
+    void loadCartridge(const std::string& path);
 
 public:
     void WRITE(uint16_t addr, uint8_t data);
