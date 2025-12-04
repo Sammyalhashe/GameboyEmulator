@@ -4,3 +4,5 @@ out/
 CMakeFiles/
 cmake-build-debug/
 
+build/
+cmake-build-debug/

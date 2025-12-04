@@ -29,17 +29,20 @@ public:
 
 public:
     CPU cpu;
-    std::array<uint8_t, 64 * 1024> RAM{};
+    // System Memory
+    std::array<uint8_t, 8 * 1024> VRAM{}; // 0x8000 - 0x9FFF
+    std::array<uint8_t, 8 * 1024> WRAM{}; // 0xC000 - 0xDFFF (and Echo RAM)
+    std::array<uint8_t, 127> HRAM{};      // 0xFF80 - 0xFFFE
+    std::array<uint8_t, 128> OAM{};       // 0xFE00 - 0xFE9F
+    std::array<uint8_t, 128> IO{};        // 0xFF00 - 0xFF7F
+
+    // Cartridge Memory
+    std::vector<uint8_t> cartridgeMemory; // Full ROM data
+    uint8_t currentRomBank = 1;
 
 private:
     std::vector<uint8_t> bootRomData;
     bool bootRomEnabled = false;
-
-    static const uint16_t LOW = 0x0000; // NOTE: GB boots up with PC at 0x0100
-    static const uint16_t HI = 0xFFFF;
-    static bool addressInRange(uint16_t addr) {
-        return (addr >= LOW && addr <= HI);
-    }
 
 private:
     bool loadBootROM(const std::string& path);
