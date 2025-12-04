@@ -104,6 +104,7 @@ public:
     bool interrupts_enabled = false;
     int interrupts_cycles_left_to_enabled = 0;
     const int CPU_FREQ = 4194304;
+    bool debugMode = false;
 
 public:
     // connects the CPU to the created Bus

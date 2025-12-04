@@ -16,7 +16,8 @@ Bus::Bus() {
 
 Bus::~Bus()=default;
 
-void Bus::init(std::string romPath, bool skipBoot) {
+void Bus::init(std::string romPath, bool skipBoot, bool debugMode) {
+    cpu.debugMode = debugMode;
     loadCartridge(romPath);
 
     bool bootLoaded = false;

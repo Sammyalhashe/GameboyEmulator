@@ -25,7 +25,7 @@ public:
     ~Bus();
 
     // Initialize the bus with ROM loading options
-    void init(std::string romPath, bool skipBoot);
+    void init(std::string romPath, bool skipBoot, bool debugMode);
 
 public:
     CPU cpu;

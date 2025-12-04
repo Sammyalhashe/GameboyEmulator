@@ -92,6 +92,7 @@ CPU::CPU() = default;
 CPU::~CPU()=default;
 
 void CPU::printSummary() {
+    if (!debugMode) return;
     // print regs
     dumpRegs();
 
